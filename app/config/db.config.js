@@ -13,7 +13,7 @@
 //};
 
 module.exports = {
-    HOST: "3.110.168.159",
+    HOST: "localhost",
     USER: "harry",
     PASSWORD: "password",
     DB: "docmanager",
