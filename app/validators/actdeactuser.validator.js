@@ -1,7 +1,7 @@
 const { body, validationResult } = require("express-validator");
 exports.actDeactUserValidator = [
     body("statusflag").exists().withMessage("Status Flag is required")
-        .isInt().withMessage("Status flag should be Integer value"),
+        .isInt({ min: 0, max: 1 }).withMessage("Status flag should be 0 or 1"),
     body("userid")
         .exists({ checkFalsy: true }).withMessage("Userid is required")
         .isLength({ min: 36 }).withMessage("Inavlid Userid"),
