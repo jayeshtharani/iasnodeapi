@@ -65,10 +65,12 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
     for (var i = 0, n = charset.length; i < length; ++i) {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
+    
+        
     console.log('the current created password is =' + password);
     User.create({
-        username: req.body.username,
-        email: req.body.companyemail,
+        username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
+        email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
         password: bcrypt.hashSync(password, 8)
     }).then(userResult => {
         userResult.setRoles([1]).then(roleResult => {
