@@ -18,7 +18,13 @@ module.exports = function (app) {
         controller.create
     );
 
-    app.post("/api/customer/dashboard",
+    app.put("/api/customer/edit/:customerid",
+        [authJwt.verifyToken, authJwt.isAdmin],
+        createCustomerValidator,
+        controller.edit
+    );
+
+    app.get("/api/customer/dashboard",
         [authJwt.verifyToken, authJwt.isCustomer],
         controller.dashboard
     );

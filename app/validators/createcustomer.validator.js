@@ -11,7 +11,7 @@ exports.createCustomerValidator = [
         .isString().withMessage("Last Name should be string")
         .isLength({ min: 3 }).withMessage("Last Name should be at least 3 characters"),
     body("cpgenderid").exists({ checkFalsy: true }).withMessage("Gender is required")
-        .isInt("Gender should be Int Value").withMessage(),
+        .isInt({ min: 1, max: 2 }).withMessage("Gender  should be 1 or 2"),
     body("cpdob").exists().isISO8601().toDate().withMessage("Valid date format YYYY-MM-DD"),
     body("cpemail").normalizeEmail()
         .exists({ checkFalsy: true }).withMessage("Email is required")

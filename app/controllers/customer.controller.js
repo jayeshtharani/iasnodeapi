@@ -4,6 +4,7 @@ const User = db.user;
 const Customer = db.customers;
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
+const sanitizeHtml = require('sanitize-html');
 
 exports.create = (req, res) => {
     var length = 12,
@@ -14,22 +15,22 @@ exports.create = (req, res) => {
     }
     console.log('the current created password is =' + password);
     User.create({
-        username: req.body.cpfirstname + " " + req.body.cplastname,
-        email: req.body.companyemail,
+        username: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) + " " + sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
+        email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
         password: bcrypt.hashSync(password, 8)
     }).then(userResult => {
         userResult.setRoles([2]).then(roleResult => {
             Customer.create({
-                companyname: req.body.companyname,
-                companyphone: req.body.companyphone,
-                companyemail: req.body.companyemail,
-                companyaddress: req.body.companyaddress,
-                cpfirstname: req.body.cpfirstname,
-                cplastname: req.body.cplastname,
+                companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
+                companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }),
+                companyemail: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
+                companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }),
+                cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }),
+                cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
                 cpgenderid: req.body.cpgenderid,
-                cpemail: req.body.cpemail,
+                cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }),
                 cpdob: req.body.cpdob,
-                cpnotes: req.body.cpnotes,
+                cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }),
                 userid: userResult.userid
             }).then(custResult => {
                 res.status(200).send({
@@ -37,6 +38,51 @@ exports.create = (req, res) => {
                     message: "Success"
                 });
             });
+        });
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+};
+
+
+exports.edit = (req, res) => {
+    const { customerid } = req.params;
+    Customer.findOne({
+        where: {
+            customerid: customerid,
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer not found" });
+        }
+        User.update(
+            {
+                username: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) + " " + sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
+            },
+            {
+                where: { userid: sanitizeHtml(user.userid, { allowedTags: [], allowedAttributes: {} }) },
+            }
+        )
+    }).then(ur => {
+        Customer.update(
+            {
+                companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
+                companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }),
+                companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }),
+                cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }),
+                cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
+                cpgenderid: req.body.cpgenderid,
+                cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }),
+                cpdob: req.body.cpdob,
+                cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }),
+            },
+            {
+                where: { customerid: customerid },
+            }
+        ).then(cr => {
+            res.status(200).send({ data: "Customer Updated", message: "Success" });
+
         });
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
@@ -54,7 +100,7 @@ exports.getcustomer = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "Customer not found" });
         }
-       
+
         var data = [];
         data.push({
             "FirstName": user.cpfirstname,
@@ -76,7 +122,7 @@ exports.getcustomer = (req, res) => {
 
 exports.getcustomerprofile = (req, res) => {
     const { customerid } = req.params;
-   
+
     Customer.findOne({
         where: {
             customerid: customerid,

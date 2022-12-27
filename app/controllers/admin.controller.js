@@ -101,27 +101,27 @@ exports.createfolder = (req, res) => {
     });
 };
 
-exports.createfile = (req, res) => {
-    Customer.findOne({
-        where: {
-            customerid: req.body.customerid,
-            isdeleted: false
-        }
-    }).then(user => {
-        if (!user) {
-            return res.status(404).send({ data: null, message: "Customer Not found." });
-        }
-        CustomerFiles.create({
-            customerfilepath: 'aa',
-            customerfilename: 'aa',
-            filetags: req.body.filetags,
-            customerfolderid: req.body.customerfolderid,
-            customerid: user.customerid,
-        }).then(userResult => {
-            res.status(200).send({ data: userResult.customerfileid, message: "Success" });
-        });
-    }).catch(err => {
-        res.status(500).send({ data: null, message: err.message });
-    });
-};
+//exports.createfile = (req, res) => {
+//    Customer.findOne({
+//        where: {
+//            customerid: req.body.customerid,
+//            isdeleted: false
+//        }
+//    }).then(user => {
+//        if (!user) {
+//            return res.status(404).send({ data: null, message: "Customer Not found." });
+//        }
+//        CustomerFiles.create({
+//            customerfilepath: 'aa',
+//            customerfilename: 'aa',
+//            filetags: req.body.filetags,
+//            customerfolderid: req.body.customerfolderid,
+//            customerid: user.customerid,
+//        }).then(userResult => {
+//            res.status(200).send({ data: userResult.customerfileid, message: "Success" });
+//        });
+//    }).catch(err => {
+//        res.status(500).send({ data: null, message: err.message });
+//    });
+//};
 

@@ -65,7 +65,7 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
     for (var i = 0, n = charset.length; i < length; ++i) {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
-    
+   
         
     console.log('the current created password is =' + password);
     User.create({
