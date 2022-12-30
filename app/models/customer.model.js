@@ -49,7 +49,7 @@ module.exports = (sequelize, Sequelize) => {
         },
         cpdob: {
             type: Sequelize.DATEONLY,
-             allowNull: false,
+            allowNull: false,
         },
         cpnotes: {
             type: Sequelize.STRING
@@ -61,6 +61,11 @@ module.exports = (sequelize, Sequelize) => {
         isdeleted: {
             type: Sequelize.BOOLEAN,
             defaultValue: false
+        },
+        profilepic: {
+            type: Sequelize.STRING,
+            defaultValue: '',
+            allowNull: true
         },
         userid: {
             type: Sequelize.UUID,

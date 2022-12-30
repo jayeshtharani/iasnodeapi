@@ -62,9 +62,13 @@ isCustomer = (req, res, next) => {
     });
 };
 
+
+
+
 const authJwt = {
     verifyToken: verifyToken,
     isAdmin: isAdmin,
     isCustomer: isCustomer
+
 };
 module.exports = authJwt;

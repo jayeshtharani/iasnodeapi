@@ -2,12 +2,15 @@ const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
 const Customer = db.customers;
-const CustomerFolders = db.customerfolders;
 const CustomerFiles = db.customerfiles;
+const CustomerFolders = db.customerfolders;
 const sanitizeHtml = require('sanitize-html');
-
-
+const sequelize = require("sequelize");
 exports.dashboard = (req, res) => {
+    var appfiles = 0;
+    var appfolders = 0;
+    CustomerFiles.count({ distinct: 'customerfileid', where: { isdeleted: false } }).then(count => { appfiles = count; return appfiles; });
+    CustomerFolders.count({ distinct: 'customerfolderid', where: { isdeleted: false } }).then(count => {  appfolders = count; return appfolders; });
     Customer.findAll({
         attributes: ['customerid', 'cpfirstname', 'cplastname', 'isactive', 'userid'],
         where: {
@@ -18,6 +21,7 @@ exports.dashboard = (req, res) => {
             return res.status(404).send({ data: null, message: "0 Customers found" });
         }
         var data2 = [];
+
         user.forEach(element => {
             data2.push({
                 "FirstName": element.cpfirstname,
@@ -26,14 +30,14 @@ exports.dashboard = (req, res) => {
                 "CustomerId": element.customerid,
                 "TotalDocuments": 5,
                 "TotalFolders": 5,
-                "IsActive":element.isactive
+                "IsActive": element.isactive
             });
         });
         res.status(200).send({
             message: "Success",
             data: data2,
-            "TotalDocuments": 5,
-            "TotalFolders": 5,
+            "TotalDocuments": appfiles,
+            "TotalFolders": appfolders,
             "TotalCustomers": user.length,
         });
     }).catch(err => {
@@ -42,6 +46,92 @@ exports.dashboard = (req, res) => {
 };
 
 
+exports.removecustomerfile = (req, res) => {
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(custRes => {
+        if (!custRes) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+        CustomerFiles.findOne({
+            where: {
+                customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+                customerfileid: sanitizeHtml(req.body.customerfileid, { allowedTags: [], allowedAttributes: {} }),
+                isdeleted: false
+            }
+        }).then(csfileRes => {
+            if (!csfileRes) {
+                return res.status(404).send({ data: null, message: "Customer File not found." });
+            }
+            CustomerFiles.update(
+                {
+                    isdeleted: true
+                },
+                {
+                    where: {
+                        customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+                        customerfileid: sanitizeHtml(req.body.customerfileid, { allowedTags: [], allowedAttributes: {} }),
+                    },
+                }
+            ).then(csUpateRes => {
+                return res.status(404).send({ data: custRes.customerid, message: "Success." });
+            });
+        });
+    });
+};
+
+exports.removecustomerfolder = (req, res) => {
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(custRes => {
+        if (!custRes) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+        CustomerFolders.findOne({
+            where: {
+                customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+                customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
+                isdeleted: false
+            }
+        }).then(csfileRes => {
+            if (!csfileRes) {
+                return res.status(404).send({ data: null, message: "Customer Folder not found." });
+            }
+            CustomerFolders.update(
+                {
+                    isdeleted: true
+                },
+                {
+                    where: {
+                        customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+                        customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
+                    },
+                }
+            ).then(csUpateRes => {
+                CustomerFiles.update(
+                    {
+                        isdeleted: true
+                    },
+                    {
+                        where: {
+                            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+                            customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
+                        },
+                    }
+                ).then(fsResult => {
+
+                    return res.status(404).send({ data: custRes.customerid, message: "Success." });
+                });
+            });
+        });
+    });
+};
 
 exports.actdeactuser = (req, res) => {
     User.findOne({
@@ -77,51 +167,3 @@ exports.actdeactuser = (req, res) => {
         res.status(500).send({ data: null, message: err.message });
     });
 };
-
-
-exports.createfolder = (req, res) => {
-    Customer.findOne({
-        where: {
-            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-            isdeleted: false
-        }
-    }).then(user => {
-        if (!user) {
-            return res.status(404).send({ data: null, message: "Customer Not found." });
-        }
-
-        CustomerFolders.create({
-            foldername: sanitizeHtml(req.body.foldername, { allowedTags: [], allowedAttributes: {} }),
-            customerid: user.customerid,
-        }).then(userResult => {
-            res.status(200).send({ data: userResult.customerfolderid, message: "Success" });
-        });
-    }).catch(err => {
-        res.status(500).send({ data: null, message: err.message });
-    });
-};
-
-//exports.createfile = (req, res) => {
-//    Customer.findOne({
-//        where: {
-//            customerid: req.body.customerid,
-//            isdeleted: false
-//        }
-//    }).then(user => {
-//        if (!user) {
-//            return res.status(404).send({ data: null, message: "Customer Not found." });
-//        }
-//        CustomerFiles.create({
-//            customerfilepath: 'aa',
-//            customerfilename: 'aa',
-//            filetags: req.body.filetags,
-//            customerfolderid: req.body.customerfolderid,
-//            customerid: user.customerid,
-//        }).then(userResult => {
-//            res.status(200).send({ data: userResult.customerfileid, message: "Success" });
-//        });
-//    }).catch(err => {
-//        res.status(500).send({ data: null, message: err.message });
-//    });
-//};
-

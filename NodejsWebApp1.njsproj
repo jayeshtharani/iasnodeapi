@@ -68,6 +68,8 @@
     <Folder Include="app\controllers\" />
     <Folder Include="app\middleware\" />
     <Folder Include="app\models\" />
+    <Folder Include="app\uploads\files\" />
+    <Folder Include="app\uploads\profilepic\" />
     <Folder Include="app\validators\" />
     <Folder Include="app\uploads\" />
     <Folder Include="app\routes\" />
