@@ -22,6 +22,7 @@
     "helmet": "^6.0.1",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.3.3",
+    "nodemailer": "^6.8.0",
     "nodemon": "^2.0.20",
     "os": "^0.1.2",
     "path": "^0.12.7",

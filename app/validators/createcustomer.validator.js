@@ -13,13 +13,11 @@ exports.createCustomerValidator = [
     body("cpgenderid").exists({ checkFalsy: true }).withMessage("Gender is required")
         .isInt({ min: 1, max: 2 }).withMessage("Gender  should be 1 or 2"),
     body("cpdob").exists().isISO8601().toDate().withMessage("Valid date format YYYY-MM-DD"),
-    body("cpemail").normalizeEmail()
+    body("cpemail")
         .exists({ checkFalsy: true }).withMessage("Email is required")
-        .isString().withMessage("Email should be string")
         .isEmail().withMessage("Provide valid email"),
-    body("companyemail").normalizeEmail()
+    body("companyemail")
         .exists({ checkFalsy: true }).withMessage("Email is required")
-        .isString().withMessage("Email should be string")
         .isEmail().withMessage("Provide valid email"),
     (req, res, next) => {
         const errors = validationResult(req);

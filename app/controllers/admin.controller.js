@@ -5,12 +5,63 @@ const Customer = db.customers;
 const CustomerFiles = db.customerfiles;
 const CustomerFolders = db.customerfolders;
 const sanitizeHtml = require('sanitize-html');
-const sequelize = require("sequelize");
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+var url = require('url');
+const URL_PROFILEPIC = 'http://localhost:8080/uploads/profilepic/';
+const URL_FILES = 'http://localhost:8080/uploads/files/';
+const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
+const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
+
+
 exports.dashboard = (req, res) => {
-    var appfiles = 0;
-    var appfolders = 0;
-    CustomerFiles.count({ distinct: 'customerfileid', where: { isdeleted: false } }).then(count => { appfiles = count; return appfiles; });
-    CustomerFolders.count({ distinct: 'customerfolderid', where: { isdeleted: false } }).then(count => {  appfolders = count; return appfolders; });
+
+    var custfiles = [];
+    var custfolders = [];
+    db.sequelize.query('SELECT customerfiles.customerfileid,customerfiles.customerfilepath,customerfiles.customerid FROM customerfiles inner join customers on customers.customerid=customerfiles.customerid inner join users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and customers.isdeleted=false',
+        {
+            raw: false,
+            type: db.sequelize.QueryTypes.SELECT,
+        }
+    ).then(function (response) {
+        response.forEach(element => {
+            var custfilepath = "";
+            if (element.customerfilepath) {
+                if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
+                    custfilepath = URL_FILES + element.customerfilepath;
+                }
+                else {
+                    custfilepath = "";
+                }
+            }
+            if (custfilepath) {
+                custfiles.push({
+                    "customerfilenameonly": element.customerfilepath,
+                    "customerfilepath": custfilepath,
+                    "customerfileid": element.customerfileid,
+                    "customerid": element.customerid,
+                });
+            }
+        });
+    });
+
+
+    db.sequelize.query('SELECT customerfolders.customerfolderid,customerfolders.foldername FROM docmanager.customerfolders inner join docmanager.customers on customers.customerid = customerfolders.customerid inner join docmanager.users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and customers.isdeleted = false',
+        {
+            raw: false,
+            type: db.sequelize.QueryTypes.SELECT,
+           
+        }
+    ).then(function (response) {
+        response.forEach(element => {
+            custfolders.push({
+                "customerfolderid": element.customerfolderid,
+                "foldername": element.foldername,
+            });
+        });
+    });
+
     Customer.findAll({
         attributes: ['customerid', 'cpfirstname', 'cplastname', 'isactive', 'userid'],
         where: {
@@ -23,21 +74,30 @@ exports.dashboard = (req, res) => {
         var data2 = [];
 
         user.forEach(element => {
+            var intcustfilecount = 0;
+            custfiles.find((value, index) => {
+                if (value.customerid === element.customerid) {
+
+                    if (value.customerfilepath) {
+                        intcustfilecount++;
+                    }
+                }
+            });
             data2.push({
                 "FirstName": element.cpfirstname,
                 "LastName": element.cplastname,
                 "UserId": element.userid,
                 "CustomerId": element.customerid,
-                "TotalDocuments": 5,
-                "TotalFolders": 5,
+                "TotalDocuments": intcustfilecount,
                 "IsActive": element.isactive
             });
         });
+       
         res.status(200).send({
             message: "Success",
             data: data2,
-            "TotalDocuments": appfiles,
-            "TotalFolders": appfolders,
+            "TotalDocuments": custfiles.length,
+            "TotalFolders": custfolders.length,
             "TotalCustomers": user.length,
         });
     }).catch(err => {
@@ -77,7 +137,7 @@ exports.removecustomerfile = (req, res) => {
                     },
                 }
             ).then(csUpateRes => {
-                return res.status(404).send({ data: custRes.customerid, message: "Success." });
+                return res.status(200).send({ data: custRes.customerid, message: "Success." });
             });
         });
     });

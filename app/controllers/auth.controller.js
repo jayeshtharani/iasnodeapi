@@ -5,6 +5,7 @@ const Customer = db.customers;
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
 const sanitizeHtml = require('sanitize-html');
+const send_email_message = require('../middleware/emailer');
 
 exports.signin = (req, res) => {
     User.findOne({
@@ -65,15 +66,28 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
     for (var i = 0, n = charset.length; i < length; ++i) {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
-   
-        
-    console.log('the current created password is =' + password);
     User.create({
         username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
         email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
         password: bcrypt.hashSync(password, 8)
     }).then(userResult => {
         userResult.setRoles([1]).then(roleResult => {
+            var regmessage = "<p>";
+            regmessage += "Hi ";
+            regmessage += sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} });
+            regmessage += ",";
+            regmessage += "</p>";
+
+            regmessage += "<p>A new admin account with Indo Aerospace Solution Pvt. Ltd.has been created for you.</p>";
+            regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
+            regmessage += "<p>Credentail: " + password;
+            regmessage += "</p>";
+
+            regmessage += "<p></p>";
+            regmessage += "Thank You, <br/>";
+            regmessage += "ISAPL";
+            send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
+                , "Welcome to IASPL!", regmessage);
             res.status(200).send({
                 data: userResult.userid,
                 message: "Success"

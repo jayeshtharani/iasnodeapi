@@ -15,6 +15,7 @@ const os = require('os');
 var url = require('url');
 const URL_PROFILEPIC = 'http://localhost:8080/uploads/profilepic/';
 const URL_FILES = 'http://localhost:8080/uploads/files/';
+const send_email_message = require('../middleware/emailer');
 
 const isFileValidProfilePic = (file) => {
     const type = path.extname(file.originalFilename);
@@ -96,12 +97,12 @@ exports.uploadprofilepic = (req, res) => {
                 }
             }
             catch (e) {
-                return res.status(500).send({ data: null, message: e + " Missing Parameters myfile and customerid" });
+                return res.status(500).send({ data: null, message: e.message + " Missing Parameters myfile and customerid" });
             }
         });
     }
     catch (e) {
-        return res.status(500).send({ data: null, message: e });
+        return res.status(500).send({ data: null, message: e.message });
     }
 
 };
@@ -193,12 +194,12 @@ exports.createfile = (req, res) => {
                 }
             }
             catch (e) {
-                return res.status(500).send({ data: null, message: e + " Missing Parameters myfile and customerid" });
+                return res.status(500).send({ data: null, message: e.message + " Missing Parameters myfile and customerid" });
             }
         });
     }
     catch (e) {
-        return res.status(500).send({ data: null, message: e });
+        return res.status(500).send({ data: null, message: e.message });
     }
 
 
@@ -232,7 +233,7 @@ exports.create = (req, res) => {
     for (var i = 0, n = charset.length; i < length; ++i) {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
-    console.log('the current created password is =' + password);
+   
     User.create({
         username: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) + " " + sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
         email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
@@ -253,6 +254,23 @@ exports.create = (req, res) => {
                 userid: userResult.userid,
                 profilepic: ''
             }).then(custResult => {
+
+                var regmessage = "<p>";
+                regmessage += "Hi ";
+                regmessage += sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} });
+                regmessage += ",";
+                regmessage += "</p>";
+
+                regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd.has been created for you.</p>";
+                regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
+                regmessage += "<p>Credentail: " + password;
+                regmessage += "</p>";
+
+                regmessage += "<p></p>";
+                regmessage += "Thank You, <br/>";
+                regmessage += "ISAPL";
+                send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
+                    , "Welcome to IASPL!", regmessage);
                 res.status(200).send({
                     data: custResult.customerid,
                     message: "Success"
@@ -484,7 +502,6 @@ exports.getcustomer = (req, res) => {
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
     });
-
 };
 
 exports.getcustomerprofile = (req, res) => {
@@ -537,10 +554,6 @@ exports.getcustomerprofile = (req, res) => {
 
 
 exports.dashboard = (req, res) => {
-
-    var id_customer = '8c18adeb-194c-4b12-b63d-1d618a0dfc42';
-    var appfiles = 0;
-    var appfolders = 0;
     var custfolders = [];
     var custfiles = [];
     Customer.findOne({
@@ -555,37 +568,17 @@ exports.dashboard = (req, res) => {
         if (!user.isactive) {
             return res.status(404).send({ data: null, message: "Customer Not active." });
         }
-        id_customer = user.customerid
-        return id_customer;
     });
 
-    //db.sequelize.query('SELECT count(customerfiles.customerfileid) as fcount FROM customerfiles inner join customers on customers.customerid=customerfiles.customerid inner join users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and users.isactive=true and customers.isdeleted=false and customers.isactive=true and users.userid= :userid',
-    //    {
-    //        raw:true,
-    //        replacements: { userid: req.userid },
-    //    }
-    //).then(function (response) {
-    //    console.log(response.fcount);
-    //    var nodedata = JSON.parse(JSON.stringify(response)); 
-    //    console.log(nodedata);
-    //});
-
-    CustomerFiles.count({ distinct: 'customerfileid', where: { customerid: id_customer, isdeleted: false } }).then(count => {
-        appfiles = count;
-    });
-    CustomerFolders.count({ distinct: 'customerfolderid', where: { customerid: id_customer, isdeleted: false } }).then(count => {
-        appfolders = count;
-    });
-
-    CustomerFolders.findAll({
-        attributes: ['customerfolderid', 'foldername'],
-        where: {
-            isdeleted: false,
-            customerid: id_customer
+    
+    db.sequelize.query('SELECT customerfolders.customerfolderid, customerfolders.foldername FROM customerfolders inner join customers on customers.customerid = customerfolders.customerid inner join users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and users.isactive = true and customers.isdeleted = false and customers.isactive = true and users.userid = :userid',
+        {
+            raw: false,
+            type: db.sequelize.QueryTypes.SELECT,
+            replacements: { userid: req.userid },
         }
-    }).then(cfolder => {
-
-        cfolder.forEach(element => {
+    ).then(function (response) {
+        response.forEach(element => {
             custfolders.push({
                 "customerfolderid": element.customerfolderid,
                 "foldername": element.foldername,
@@ -593,14 +586,15 @@ exports.dashboard = (req, res) => {
         });
     });
 
-    CustomerFiles.findAll({
-        attributes: ['customerfileid', 'customerfilepath', 'filetags', 'customerfolderid'],
-        where: {
-            isdeleted: false,
-            customerid: id_customer
+
+    db.sequelize.query('SELECT customerfiles.customerfileid,customerfiles.filetags,customerfiles.customerfilepath,customerfiles.customerfilename,customerfiles.customerfolderid FROM docmanager.customerfiles inner join docmanager.customers on customers.customerid=customerfiles.customerid inner join docmanager.users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and users.isactive=true and customers.isdeleted=false and customers.isactive=true and users.userid= :userid',
+        {
+            raw: false,
+            type: db.sequelize.QueryTypes.SELECT,
+            replacements: { userid: req.userid },
         }
-    }).then(cf => {
-        cf.forEach(element => {
+    ).then(function (response) {
+        response.forEach(element => {
             var custfilepath = "";
             if (element.customerfilepath) {
                 if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
@@ -610,14 +604,16 @@ exports.dashboard = (req, res) => {
                     custfilepath = "";
                 }
             }
-
-            custfiles.push({
-                "customerfilepath": custfilepath,
-                "customerfileid": element.customerfileid,
-                "filetags": element.filetags,
-                "customerfolderid": element.customerfolderid,
-                "customerfilename": element.customerfilename
-            });
+            if (custfilepath) {
+                custfiles.push({
+                    "customerfilepath": custfilepath,
+                    "customerfileid": element.customerfileid,
+                    "filetags": element.filetags,
+                    "customerfolderid": element.customerfolderid,
+                    "customerfilename": element.customerfilename
+                });
+            }
+           
         });
     });
 
@@ -643,13 +639,12 @@ exports.dashboard = (req, res) => {
             }
         }
         var data = [];
-
         data.push({
             "FirstName": user.cpfirstname,
             "LastName": user.cplastname,
             "CustomerId": user.customerid,
-            "TotalDocuments": appfiles,
-            "TotalFolders": appfolders,
+            "TotalDocuments": custfiles.length,
+            "TotalFolders": custfolders.length,
             "ProfilePic": profilepic,
             "Folders": custfolders,
             "Files": custfiles,
@@ -662,85 +657,5 @@ exports.dashboard = (req, res) => {
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
     });
-
-
-    //var dts = customrepodata.GetCustomerFiles(id_customer);
-    //console.log(dts);
-    //data.push({
-    //    "TotalDocuments": customrepodata.GetCustomerFiles(id_customer),
-    //    "TotalFolders": customrepodata.GetCustomerFiles(id_customer),
-
-    //});
-
-
-
-
-    //p1.then(cresultfiles1 => {
-    //    return CustomerFiles.count({ distinct: 'customerfileid', where: { customerid: cresultfiles1.customerid, isdeleted: false } });
-    //}).then(cresultfiles1 => {
-    //    appfiles = cresultfiles1;
-    //    return appfiles;
-    //}).then(crfoldersresult => {
-    //    console.log(cresultfiles);
-    //    return CustomerFolders.count({ distinct: 'customerfolderid', where: { customerid: cresultfiles.customerid, isdeleted: false } });
-    //}).then(crfoldersresult1 => {
-    //    appfolders = crfoldersresult1;
-    //    return appfolders;
-    //}).then(fresult => {
-
-    //    var data = [];
-    //    data.push({
-    //        "FirstName": cresultfiles.cpfirstname,
-    //        "LastName": cresultfiles.cplastname,
-    //        "CustomerId": cresultfiles.customerid,
-    //        "TotalDocuments": appfiles,
-    //        "TotalFolders": appfolders
-    //    });
-
-    // });
-
-    //Customer.findOne({
-    //    where: {
-    //        userid: req.userid,
-    //        isdeleted: false
-    //    }
-    //}).then(user => {
-    //    if (!user) {
-    //        return res.status(404).send({ data: null, message: "Customer not found" });
-    //    }
-    //    if (!user.isactive) {
-    //        return res.status(404).send({ data: null, message: "Customer Not active." });
-    //    }
-
-    //    var profilepic = "";
-    //    if (user.profilepic) {
-    //        if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-    //            profilepic = URL_PROFILEPIC + user.profilepic;
-    //        }
-    //        else {
-    //            profilepic = "";
-    //        }
-    //    }
-    //    var data = [];
-    //    data.push({
-    //        "FirstName": user.cpfirstname,
-    //        "LastName": user.cplastname,
-    //        "CustomerId": user.customerid,
-    //        "TotalDocuments": customrepodata.GetCustomerFiles(user.customerid),
-    //        "TotalFolders": customrepodata.GetCustomerFiles(user.customerid),
-    //        "ProfilePic": profilepic
-    //    });
-    //    return data;
-
-    //}).then(fdata => {
-    //    console.log('sending data1');  
-    //    res.status(200).send({
-    //        message: "Success",
-    //        data: fdata
-    //    });
-
-    //}).catch(err => {
-    //    res.status(500).send({ data: null, message: err.message });
-    //});
 
 };

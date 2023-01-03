@@ -1,8 +1,7 @@
 const { body, validationResult } = require("express-validator");
 exports.loginValidator = [
-    body("email").normalizeEmail()
+    body("email")
         .exists({ checkFalsy: true }).withMessage("Email is required")
-        .isString().withMessage("Email should be string")
         .isEmail().withMessage("Provide valid email"),
     body("password")
         .exists({ checkFalsy: true }).withMessage("Password is required")

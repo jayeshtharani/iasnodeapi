@@ -34,6 +34,7 @@
     <Content Include="app\controllers\auth.controller.js" />
     <Content Include="app\controllers\admin.controller.js" />
     <Content Include="app\controllers\customer.controller.js" />
+    <Content Include="app\middleware\emailer.js" />
     <Content Include="app\middleware\authJwt.js" />
     <Content Include="app\middleware\index.js" />
     <Content Include="app\middleware\verifySignUp.js" />

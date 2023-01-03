@@ -4,9 +4,7 @@ const cors = require("cors");
 const helmet = require('helmet');
 const compression = require('compression');
 const winston = require('winston');
-
 require('dotenv').config();
-
 const dev = process.env.NODE_ENV !== 'production';
 const PORT = process.env.NODE_PORT || 8080;
 const ROOT_URL = process.env.APP_URL + PORT + "/";
@@ -16,13 +14,10 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: '10mb', }));
 app.use(cors());
-//app.use(express.static(`${__dirname}/uploads`));
-
 
 //if (!dev) {
 //    server.set('trust proxy', 1);
 //}
-
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', 'true');
