@@ -80,7 +80,7 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
 
             regmessage += "<p>A new admin account with Indo Aerospace Solution Pvt. Ltd.has been created for you.</p>";
             regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
-            regmessage += "<p>Credentail: " + password;
+            regmessage += "<p>Credentials: " + password;
             regmessage += "</p>";
 
             regmessage += "<p></p>";

@@ -45,14 +45,15 @@ logger.add(new winston.transports.Console({
 }));
 
 const db = require("./app/models");
-const Role = db.role;
+//const Role = db.role;
+//const AppSettings = db.appsettings;
 db.sequelize.sync();
 
 //db.sequelize.sync({ force: true }).then(() => {
 //   console.log('Drop and Resync Database with { force: true }');
 //   initial();
 // });
-
+//initial();
 // routes
 require('./app/routes/auth.routes')(app);
 require('./app/routes/customer.routes')(app);
@@ -64,14 +65,19 @@ app.listen(PORT, (err) => {
 });
 
 
-function initial() {
-    Role.create({
-        roleid: 1,
-        name: "admin"
-    });
+//function initial() {
+//    AppSettings.create({
+//        appkey: 'smtphost',
+//        appvalue: "smtp.elasticemail.com"
+//    });
 
-    Role.create({
-        roleid: 2,
-        name: "customer"
-    });
-}
+//    AppSettings.create({
+//        appkey: "smtpport",
+//        appvalue: "25"
+//    });
+
+//    AppSettings.create({
+//        appkey: "smtpuser",
+//        appvalue: "jayeshtharani@gmail.com"
+//    });
+//}
