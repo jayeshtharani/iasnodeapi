@@ -1,5 +1,4 @@
 const config = require("../config/db.config.js");
-
 const Sequelize = require("sequelize");
 const sequelize = new Sequelize(
     config.DB,
@@ -16,12 +15,9 @@ const sequelize = new Sequelize(
         }
     }
 );
-
 const db = {};
-
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
-
 db.user = require("../models/user.model.js")(sequelize, Sequelize);
 db.role = require("../models/role.model.js")(sequelize, Sequelize);
 db.customers = require("../models/customer.model.js")(sequelize, Sequelize);
@@ -38,9 +34,6 @@ db.user.belongsToMany(db.role, {
     foreignKey: "userid",
     otherKey: "roleid"
 });
-
-
 db.ROLES = ["admin", "customer"];
-
 module.exports = db;
     

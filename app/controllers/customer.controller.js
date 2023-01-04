@@ -342,7 +342,9 @@ exports.getfolders = (req, res) => {
             attributes: ['customerfolderid', 'foldername'],
             where: {
                 isdeleted: false
-            }
+            }, order: [
+                ['updatedAt', 'DESC']
+            ]
         }).then(folderRes => {
             if (!folderRes) {
                 return res.status(404).send({ data: null, message: "0 folders found" });
@@ -410,19 +412,18 @@ exports.getfile = (req, res) => {
 exports.getcustomer = (req, res) => {
     const { customerid } = req.params;
 
-    var appfiles = 0;
-    var appfolders = 0;
+   
     var custfolders = [];
     var custfiles = [];
-    CustomerFiles.count({ distinct: 'customerfileid', where: { customerid: customerid, isdeleted: false } }).then(count => { appfiles = count; return appfiles; });
-    CustomerFolders.count({ distinct: 'customerfolderid', where: { customerid: customerid, isdeleted: false } }).then(count => { appfolders = count; return appfolders; });
-
+   
     CustomerFolders.findAll({
         attributes: ['customerfolderid', 'foldername'],
         where: {
             isdeleted: false,
             customerid: customerid
-        }
+        }, order: [
+            ['updatedAt', 'DESC']
+        ]
     }).then(cfolder => {
 
         cfolder.forEach(element => {
@@ -440,7 +441,9 @@ exports.getcustomer = (req, res) => {
         where: {
             isdeleted: false,
             customerid: customerid
-        }
+        }, order: [
+            ['updatedAt', 'DESC']
+        ]
     }).then(cf => {
         cf.forEach(element => {
             var custfilepath = "";
@@ -452,14 +455,18 @@ exports.getcustomer = (req, res) => {
                     custfilepath = "";
                 }
             }
+            if (custfilepath) {
 
-            custfiles.push({
-                "customerfilepath": custfilepath,
-                "customerfileid": element.customerfileid,
-                "filetags": element.filetags,
-                "customerfolderid": element.customerfolderid,
-                "customerfilename": element.customerfilename
-            });
+                custfiles.push({
+                    "customerfilepath": custfilepath,
+                    "customerfileid": element.customerfileid,
+                    "filetags": element.filetags,
+                    "customerfolderid": element.customerfolderid,
+                    "customerfilename": element.customerfilename
+                });
+            }
+
+            
         });
         return custfiles;
     });
@@ -483,13 +490,12 @@ exports.getcustomer = (req, res) => {
             }
         }
         var data = [];
-
         data.push({
             "FirstName": user.cpfirstname,
             "LastName": user.cplastname,
             "CustomerId": user.customerid,
-            "TotalDocuments": appfiles,
-            "TotalFolders": appfolders,
+            "TotalDocuments": custfiles.length,
+            "TotalFolders": custfolders.length,
             "ProfilePic": profilepic,
             "Folders": custfolders,
             "Files": custfiles,
@@ -498,7 +504,6 @@ exports.getcustomer = (req, res) => {
             message: "Success",
             data: data
         });
-
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
     });
@@ -571,7 +576,7 @@ exports.dashboard = (req, res) => {
     });
 
     
-    db.sequelize.query('SELECT customerfolders.customerfolderid, customerfolders.foldername FROM customerfolders inner join customers on customers.customerid = customerfolders.customerid inner join users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and users.isactive = true and customers.isdeleted = false and customers.isactive = true and users.userid = :userid',
+    db.sequelize.query('SELECT customerfolders.customerfolderid, customerfolders.foldername FROM customerfolders inner join customers on customers.customerid = customerfolders.customerid inner join users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and users.isactive = true and customers.isdeleted = false and customers.isactive = true and users.userid = :userid order by customerfolders.updatedAt desc',
         {
             raw: false,
             type: db.sequelize.QueryTypes.SELECT,
@@ -587,7 +592,7 @@ exports.dashboard = (req, res) => {
     });
 
 
-    db.sequelize.query('SELECT customerfiles.customerfileid,customerfiles.filetags,customerfiles.customerfilepath,customerfiles.customerfilename,customerfiles.customerfolderid FROM docmanager.customerfiles inner join docmanager.customers on customers.customerid=customerfiles.customerid inner join docmanager.users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and users.isactive=true and customers.isdeleted=false and customers.isactive=true and users.userid= :userid',
+    db.sequelize.query('SELECT customerfiles.customerfileid,customerfiles.filetags,customerfiles.customerfilepath,customerfiles.customerfilename,customerfiles.customerfolderid FROM docmanager.customerfiles inner join docmanager.customers on customers.customerid=customerfiles.customerid inner join docmanager.users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and users.isactive=true and customers.isdeleted=false and customers.isactive=true and users.userid= :userid order by customerfiles.updatedAt desc',
         {
             raw: false,
             type: db.sequelize.QueryTypes.SELECT,

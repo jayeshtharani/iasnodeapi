@@ -13,22 +13,38 @@ const URL_PROFILEPIC = 'http://localhost:8080/uploads/profilepic/';
 const URL_FILES = 'http://localhost:8080/uploads/files/';
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
 const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
-
+const Op = db.Sequelize.Op;
 
 exports.dashboard = (req, res) => {
     var q_offset = 0;
     var q_limit = 5;
+    var searchname = '';
     if (req.query) {
         if (req.query.offset) {
-            q_offset = parseInt(req.query.offset);
+            q_offset = parseInt(req.query.offset) || 0;
         }
         if (req.query.limit) {
-            q_limit = parseInt(req.query.limit);
+            q_limit = parseInt(req.query.limit) || 5;
+        }
+        if (req.query.searchname && req.query.searchname.length > 0) {
+            searchname = req.query.searchname;
         }
     }
     var custfiles = [];
     var custfolders = [];
-    db.sequelize.query('SELECT customerfiles.customerfileid,customerfiles.customerfilepath,customerfiles.customerid FROM customerfiles inner join customers on customers.customerid=customerfiles.customerid inner join users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and customers.isdeleted=false',
+    var t_cust = [];
+
+    db.sequelize.query('SELECT customers.customerid FROM customers where customers.isdeleted=false',
+        {
+            raw: false,
+            type: db.sequelize.QueryTypes.SELECT,
+        }
+    ).then(function (response) {
+        t_cust = response;
+
+    });
+
+    db.sequelize.query('SELECT customerfiles.customerfileid,customerfiles.customerfilepath,customerfiles.customerid FROM customerfiles inner join customers on customers.customerid=customerfiles.customerid inner join users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and customers.isdeleted=false order by customerfiles.updatedAt desc',
         {
             raw: false,
             type: db.sequelize.QueryTypes.SELECT,
@@ -54,7 +70,7 @@ exports.dashboard = (req, res) => {
             }
         });
     });
-    db.sequelize.query('SELECT customerfolders.customerfolderid,customerfolders.foldername FROM docmanager.customerfolders inner join docmanager.customers on customers.customerid = customerfolders.customerid inner join docmanager.users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and customers.isdeleted = false',
+    db.sequelize.query('SELECT customerfolders.customerfolderid,customerfolders.foldername FROM docmanager.customerfolders inner join docmanager.customers on customers.customerid = customerfolders.customerid inner join docmanager.users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and customers.isdeleted = false order by customerfolders.updatedAt desc',
         {
             raw: false,
             type: db.sequelize.QueryTypes.SELECT,
@@ -69,53 +85,114 @@ exports.dashboard = (req, res) => {
         });
     });
 
-    Customer.findAndCountAll({
-        attributes: ['customerid', 'cpfirstname', 'cplastname', 'isactive', 'userid'],
-        offset: q_offset,//page number starts from 0
-        limit: q_limit,
-        where: {
-            isdeleted: false
-        },
-        order: [
-            ['updatedAt', 'DESC']
-        ],
-    }).then(user => {
-        if (!user) {
-            return res.status(404).send({ data: null, message: "0 Customers found" });
-        }
-        var data2 = [];
-        user.rows.forEach(element => {
-            var intcustfilecount = 0;
-            custfiles.find((value, index) => {
-                if (value.customerid === element.customerid) {
-                    if (value.customerfilepath) {
-                        intcustfilecount++;
+    //if
+    if (searchname.length > 0) {
+        console.log('in if');
+        console.log(searchname);
+        Customer.findAndCountAll({
+            attributes: ['customerid', 'cpfirstname', 'cplastname', 'isactive', 'userid'],
+            offset: q_offset,//page number starts from 0
+            limit: q_limit,
+            where: {
+                isdeleted: false,
+                [Op.or]: [
+                    {
+                        cpfirstname: { [Op.substring]: searchname },
+                    },
+                    {
+                        cplastname: { [Op.substring]: searchname },
+                    },
+                ]
+            },
+            order: [
+                ['updatedAt', 'DESC']
+            ],
+        }).then(user => {
+            if (!user) {
+                return res.status(404).send({ data: null, message: "0 Customers found" });
+            }
+            var data2 = [];
+            user.rows.forEach(element => {
+                var intcustfilecount = 0;
+                custfiles.find((value, index) => {
+                    if (value.customerid === element.customerid) {
+                        if (value.customerfilepath) {
+                            intcustfilecount++;
+                        }
                     }
-                }
+                });
+                data2.push({
+                    "FirstName": element.cpfirstname,
+                    "LastName": element.cplastname,
+                    "UserId": element.userid,
+                    "CustomerId": element.customerid,
+                    "TotalDocuments": intcustfilecount,
+                    "IsActive": element.isactive
+                });
             });
-            data2.push({
-                "FirstName": element.cpfirstname,
-                "LastName": element.cplastname,
-                "UserId": element.userid,
-                "CustomerId": element.customerid,
-                "TotalDocuments": intcustfilecount,
-                "IsActive": element.isactive
-            });
-        });
-       
-        res.status(200).send({
-            message: "Success",
-            data: data2,
-            "TotalCustomers": user.count,
-            "TotalDocuments": custfiles.length,
-            "TotalFolders": custfolders.length,
-            "CurrentPage": q_offset,
-            "TotalPages": Math.ceil(user.count / q_limit)
 
+            res.status(200).send({
+                message: "Success",
+                data: data2,
+                "TotalCustomers": t_cust.length,
+                "TotalDocuments": custfiles.length,
+                "TotalFolders": custfolders.length,
+                "CurrentPage": q_offset,
+                "TotalPages": Math.ceil(user.count / q_limit)
+            });
+        }).catch(err => {
+            res.status(500).send({ data: null, message: err.message });
         });
-    }).catch(err => {
-        res.status(500).send({ data: null, message: err.message });
-    });
+    }
+
+
+    else {
+        Customer.findAndCountAll({
+            attributes: ['customerid', 'cpfirstname', 'cplastname', 'isactive', 'userid'],
+            offset: q_offset,//page number starts from 0
+            limit: q_limit,
+            where: {
+                isdeleted: false,
+            },
+            order: [
+                ['updatedAt', 'DESC']
+            ],
+        }).then(user => {
+            if (!user) {
+                return res.status(404).send({ data: null, message: "0 Customers found" });
+            }
+            var data2 = [];
+            user.rows.forEach(element => {
+                var intcustfilecount = 0;
+                custfiles.find((value, index) => {
+                    if (value.customerid === element.customerid) {
+                        if (value.customerfilepath) {
+                            intcustfilecount++;
+                        }
+                    }
+                });
+                data2.push({
+                    "FirstName": element.cpfirstname,
+                    "LastName": element.cplastname,
+                    "UserId": element.userid,
+                    "CustomerId": element.customerid,
+                    "TotalDocuments": intcustfilecount,
+                    "IsActive": element.isactive
+                });
+            });
+            res.status(200).send({
+                message: "Success",
+                data: data2,
+                "TotalCustomers": user.count,
+                "TotalDocuments": custfiles.length,
+                "TotalFolders": custfolders.length,
+                "CurrentPage": q_offset,
+                "TotalPages": Math.ceil(user.count / q_limit)
+            });
+        }).catch(err => {
+            res.status(500).send({ data: null, message: err.message });
+        });
+    }
 };
 
 
