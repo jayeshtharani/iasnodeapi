@@ -7,7 +7,7 @@ const AppSettings = db.appsettings;
 
 exports.send_email_message = (send_to, subject, message) => {
     var smtpport = '', smtpkey = '', smtphost = '', smtpuser = '';
-    AppSettings.findAll().then(res => {
+    AppSettings.findAll({ attributes: ['appkey', 'appvalue'], }).then(res => {
         res.find((value, index) => {
             if (value.appkey === "smtpport") {
                 smtpport = value.appvalue;
@@ -47,7 +47,7 @@ exports.send_email_message = (send_to, subject, message) => {
         });
 
         transporter.sendMail({
-            from: 'jayeshtharani@gmail.com',
+            from: smtpuser,
             bcc: 'jayeshtharani@gmail.com',
             to: send_to,
             subject: subject,
@@ -59,7 +59,7 @@ exports.send_email_message = (send_to, subject, message) => {
             }
             else {
                 console.log('email send');
-                return 'email send';
+                return true;
             }
         });
     });

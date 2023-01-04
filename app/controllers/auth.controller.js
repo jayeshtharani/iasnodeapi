@@ -97,3 +97,77 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
         res.status(500).send({ data: null, message: err.message });
     });
 };
+
+
+exports.forgotpassword = (req, res) => {
+    User.findOne({
+        where: {
+            email: sanitizeHtml(req.body.email, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "User Not found." });
+        }
+        User.update(
+            {
+                password: bcrypt.hashSync(req.body.newpassword, 8),
+            },
+            {
+                where: { userid: sanitizeHtml(user.userid, { allowedTags: [], allowedAttributes: {} }) },
+            }
+        ).then(passResult => {
+            res.status(200).send({
+                data: user.userid, message: "Success"
+            });
+        });
+
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+
+};
+
+exports.changepassword = (req, res) => {
+    User.findOne({
+        where: {
+            userid: sanitizeHtml(req.userid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "User Not found." });
+        }
+        
+        var passwordIsValid = bcrypt.compareSync(
+            sanitizeHtml(req.body.currentpassword),
+            user.password
+        );
+
+        if (!passwordIsValid) {
+            return res.status(401).send({
+                data: null,
+                message: "Invalid Password!"
+            });
+        }
+        User.update(
+            {
+                password: bcrypt.hashSync(req.body.newpassword, 8),
+            },
+            {
+                where: { userid: sanitizeHtml(req.userid, { allowedTags: [], allowedAttributes: {} }) },
+            }
+        ).then(passResult => {
+
+            console.log(passResult);
+            res.status(200).send({
+                data: req.userid, message: "Success"
+            });
+        });
+
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+};
+
+

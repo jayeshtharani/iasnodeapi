@@ -2,7 +2,7 @@ const { body, validationResult } = require("express-validator");
 exports.createFolderValidator = [
     body("foldername")
         .exists({ checkFalsy: true }).withMessage("Folder name is required")
-        .isString().withMessage("Email should be string")
+        .isString().withMessage("Folder name should be string")
         .isLength({ min: 3 }).withMessage("Foldername should be at least 3 characters"),
     body("customerid")
         .exists({ checkFalsy: true }).withMessage("Customerid is required")

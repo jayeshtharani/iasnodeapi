@@ -1,9 +1,9 @@
 const { body, validationResult } = require("express-validator");
-exports.loginValidator = [
+exports.forgotPasswordValidator = [
     body("email")
         .exists({ checkFalsy: true }).withMessage("Email is required")
         .isEmail().withMessage("Provide valid email"),
-    body("password")
+    body("newpassword")
         .exists({ checkFalsy: true }).withMessage("Password is required")
         .isLength({ min: 3 }).withMessage("Password should be at least 3 characters"),
     (req, res, next) => {

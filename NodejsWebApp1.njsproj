@@ -49,6 +49,7 @@
     <Content Include="app\routes\admin.routes.js" />
     <Content Include="app\routes\customer.routes.js" />
     <Content Include="app\validators\actdeactuser.validator.js" />
+    <Content Include="app\validators\forgotpassword.validator.js" />
     <Content Include="app\validators\createadmin.validator.js" />
     <Content Include="app\validators\createfile.validator.js">
       <SubType>Code</SubType>
@@ -57,6 +58,7 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="app\validators\createcustomer.validator.js" />
+    <Content Include="app\validators\changepassword.validator .js" />
     <Content Include="app\validators\login.validator.js">
       <SubType>Code</SubType>
     </Content>
