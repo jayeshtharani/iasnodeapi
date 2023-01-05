@@ -9,10 +9,10 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 var url = require('url');
-const URL_PROFILEPIC = 'http://localhost:8080/uploads/profilepic/';
-const URL_FILES = 'http://localhost:8080/uploads/files/';
+//const URL_PROFILEPIC = 'http://localhost:8080/uploads/profilepic/';
+//const URL_FILES = 'http://localhost:8080/uploads/files/';
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
-const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
+//const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
 const Op = db.Sequelize.Op;
 
 exports.dashboard = (req, res) => {
@@ -44,7 +44,7 @@ exports.dashboard = (req, res) => {
 
     });
 
-    db.sequelize.query('SELECT customerfiles.customerfileid,customerfiles.customerfilepath,customerfiles.customerid FROM customerfiles inner join customers on customers.customerid=customerfiles.customerid inner join users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and customers.isdeleted=false order by customerfiles.updatedAt desc',
+    db.sequelize.query('SELECT customerfiles.filetags, customerfiles.customerfileid,customerfiles.customerfilepath,customerfiles.customerid FROM customerfiles inner join customers on customers.customerid=customerfiles.customerid inner join users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and customers.isdeleted=false order by customerfiles.updatedAt desc',
         {
             raw: false,
             type: db.sequelize.QueryTypes.SELECT,
@@ -54,7 +54,7 @@ exports.dashboard = (req, res) => {
             var custfilepath = "";
             if (element.customerfilepath) {
                 if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
-                    custfilepath = URL_FILES + element.customerfilepath;
+                    custfilepath = element.customerfilepath;
                 }
                 else {
                     custfilepath = "";
@@ -62,10 +62,11 @@ exports.dashboard = (req, res) => {
             }
             if (custfilepath) {
                 custfiles.push({
-                    "customerfilenameonly": element.customerfilepath,
+                    "customerfilename": element.customerfilename,
                     "customerfilepath": custfilepath,
                     "customerfileid": element.customerfileid,
                     "customerid": element.customerid,
+                    "filetags": element.filetags,
                 });
             }
         });

@@ -40,7 +40,7 @@ module.exports = function (app) {
 
     app.get("/api/customer/getfolders/:customerid", [authJwt.verifyToken, authJwt.isAdmin], controller.getfolders);
 
-    app.get("/uploads/profilepic/:customerid",  controller.getprofilepic);
+    //app.get("/api/customer/profilepic/:customerid",  controller.getprofilepic);
 
-    app.get("/uploads/files/:customerfilepath", controller.getfile);
+    app.post("/api/customer/downloadfile/:customerfileid", [authJwt.verifyToken],controller.downloadfile);
 };

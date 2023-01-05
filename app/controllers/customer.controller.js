@@ -10,11 +10,12 @@ const formidable = require('formidable');
 const path = require('path');
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
 const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
+//const defualtPIC = path.join(__dirname, "../uploads", "defualt_profile.png");
 const fs = require('fs');
 const os = require('os');
 var url = require('url');
-const URL_PROFILEPIC = 'http://localhost:8080/uploads/profilepic/';
-const URL_FILES = 'http://localhost:8080/uploads/files/';
+//const URL_PROFILEPIC = 'http://localhost:8080/api/customer/profilepic/';
+//const URL_FILES = 'http://localhost:8080/uploads/files/';
 const send_email_message = require('../middleware/emailer');
 
 const isFileValidProfilePic = (file) => {
@@ -91,7 +92,12 @@ exports.uploadprofilepic = (req, res) => {
                                     where: { customerid: custResult.customerid },
                                 }
                             )
-                            return res.status(200).send({ data: URL_PROFILEPIC + newFilename, message: "Success" });
+
+                            const ext = (newPath).split('.').filter(Boolean).slice(1).join('.');
+                            var bitmap = "data:image/" + ext;
+                            bitmap += ";base64," + fs.readFileSync(newPath, 'base64', 'utf-8');
+                            //return res.status(200).send({ data: URL_PROFILEPIC + newFilename, message: "Success" });
+                            return res.status(200).send({ data: bitmap, message: "Success" });
                         });
                     });
                 }
@@ -174,7 +180,7 @@ exports.createfile = (req, res) => {
                                         customerfilename: sanitizeHtml(fields.customerfilename, { allowedTags: [], allowedAttributes: {} }),
                                         filetags: sanitizeHtml(fields.filetags, { allowedTags: [], allowedAttributes: {} }),
                                     }).then(fileResult => {
-                                        return res.status(200).send({ data: URL_FILES + newFilename, message: "Success" });
+                                        return res.status(200).send({ data: newFilename, message: "Success" });
                                     });
                                 });
                             }
@@ -186,7 +192,7 @@ exports.createfile = (req, res) => {
                                     customerfilename: sanitizeHtml(fields.customerfilename, { allowedTags: [], allowedAttributes: {} }),
                                     filetags: sanitizeHtml(fields.filetags, { allowedTags: [], allowedAttributes: {} }),
                                 }).then(fileResult => {
-                                    return res.status(200).send({ data: URL_FILES + newFilename, message: "Success" });
+                                    return res.status(200).send({ data: newFilename, message: "Success" });
                                 });
                             }
                         });
@@ -233,7 +239,7 @@ exports.create = (req, res) => {
     for (var i = 0, n = charset.length; i < length; ++i) {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
-   
+
     User.create({
         username: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) + " " + sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
         email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
@@ -369,53 +375,55 @@ exports.getfolders = (req, res) => {
 
 
 
-exports.getprofilepic = (req, res) => {
-    const { customerid } = req.params;
+//exports.getprofilepic = (req, res) => {
+//    const { customerid } = req.params;
 
-    Customer.findOne({
-        where: {
-            profilepic: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
-            isdeleted: false
-        }
-    }).then(user => {
-        if (!user) {
-            return res.status(404).send({ data: null, message: "Customer not found" });
-        }
+//    Customer.findOne({
+//        where: {
+//            customerid: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
+//            isdeleted: false
+//        }
+//    }).then(user => {
+//        if (!user) {
+//            //return res.sendFile(defualtPIC);
+//            return fs.readFile(defualtPIC);
+               
+//        }
+//        if (fs.existsSync(uploadProfilePicFolder + "\\" + user.profilepic)) {
+//            const fileaa = uploadProfilePicFolder + "\\" + user.profilepic;
+//            return res.sendFile(fileaa);
+//        } else {
+//            return res.sendFile(defualtPIC);
+//        }
+//    });
+//};
 
-
-        res.status(200).send({
-            message: "Success",
-            data: user.profilepic,
-        });
-    });
-
-};
-exports.getfile = (req, res) => {
-    const { customerfilepath } = req.params;
+exports.downloadfile = (req, res) => {
+    const { customerfileid } = req.params;
     CustomerFiles.findOne({
         where: {
-            customerfilepath: sanitizeHtml(customerfilepath, { allowedTags: [], allowedAttributes: {} }),
+            customerfileid: sanitizeHtml(customerfileid, { allowedTags: [], allowedAttributes: {} }),
             isdeleted: false
         }
     }).then(user => {
         if (!user) {
-            return res.status(404).send({ data: null, message: "Customer not found" });
+            return res.status(404).send({ data: null, message: "File not found" });
         }
         if (fs.existsSync(uploadFilesFolder + "\\" + user.customerfilepath)) {
-            res.contentType("application/pdf");
-            fs.createReadStream(path).pipe(res)
+            const fileaa = uploadFilesFolder + "\\" + user.customerfilepath;
+            return res.download(fileaa);
         } else {
             return res.status(404).send({ data: null, message: "File not found" });
         }
-    });
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });;
 };
 exports.getcustomer = (req, res) => {
     const { customerid } = req.params;
-
-   
     var custfolders = [];
     var custfiles = [];
-   
+
     CustomerFolders.findAll({
         attributes: ['customerfolderid', 'foldername'],
         where: {
@@ -437,7 +445,7 @@ exports.getcustomer = (req, res) => {
     });
 
     CustomerFiles.findAll({
-        attributes: ['customerfileid', 'customerfilepath', 'filetags', 'customerfolderid'],
+        attributes: ['customerfileid', 'customerfilepath', 'filetags', 'customerfolderid', 'customerfilename'],
         where: {
             isdeleted: false,
             customerid: customerid
@@ -449,7 +457,7 @@ exports.getcustomer = (req, res) => {
             var custfilepath = "";
             if (element.customerfilepath) {
                 if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
-                    custfilepath = URL_FILES + element.customerfilepath;
+                    custfilepath = element.customerfilepath;
                 }
                 else {
                     custfilepath = "";
@@ -459,14 +467,14 @@ exports.getcustomer = (req, res) => {
 
                 custfiles.push({
                     "customerfilepath": custfilepath,
+                    "customerfilename": element.customerfilename,
                     "customerfileid": element.customerfileid,
                     "filetags": element.filetags,
                     "customerfolderid": element.customerfolderid,
-                    "customerfilename": element.customerfilename
                 });
             }
 
-            
+
         });
         return custfiles;
     });
@@ -482,8 +490,11 @@ exports.getcustomer = (req, res) => {
         }
         var profilepic = "";
         if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-                profilepic = URL_PROFILEPIC + user.profilepic;
+            if (fs.existsSync(uploadProfilePicFolder + "\\" + user.profilepic)) {
+                const ext = (uploadProfilePicFolder + "\\" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+                var bitmap = "data:image/" + ext;
+                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "\\" + user.profilepic, 'base64', 'utf-8');
+                profilepic = bitmap;
             }
             else {
                 profilepic = "";
@@ -523,8 +534,11 @@ exports.getcustomerprofile = (req, res) => {
         }
         var profilepic = "";
         if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-                profilepic = URL_PROFILEPIC + user.profilepic;
+            if (fs.existsSync(uploadProfilePicFolder + "\\" + user.profilepic)) {
+                const ext = (uploadProfilePicFolder + "\\" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+                var bitmap = "data:image/" + ext;
+                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "\\" + user.profilepic, 'base64', 'utf-8');
+                profilepic = bitmap;
             }
             else {
                 profilepic = "";
@@ -575,7 +589,7 @@ exports.dashboard = (req, res) => {
         }
     });
 
-    
+
     db.sequelize.query('SELECT customerfolders.customerfolderid, customerfolders.foldername FROM customerfolders inner join customers on customers.customerid = customerfolders.customerid inner join users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and users.isactive = true and customers.isdeleted = false and customers.isactive = true and users.userid = :userid order by customerfolders.updatedAt desc',
         {
             raw: false,
@@ -603,7 +617,7 @@ exports.dashboard = (req, res) => {
             var custfilepath = "";
             if (element.customerfilepath) {
                 if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
-                    custfilepath = URL_FILES + element.customerfilepath;
+                    custfilepath = element.customerfilepath;
                 }
                 else {
                     custfilepath = "";
@@ -618,7 +632,7 @@ exports.dashboard = (req, res) => {
                     "customerfilename": element.customerfilename
                 });
             }
-           
+
         });
     });
 
@@ -636,8 +650,12 @@ exports.dashboard = (req, res) => {
         }
         var profilepic = "";
         if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-                profilepic = URL_PROFILEPIC + user.profilepic;
+            if (fs.existsSync(uploadProfilePicFolder + "\\" + user.profilepic)) {
+                //profilepic = URL_PROFILEPIC + user.profilepic;
+                const ext = (uploadProfilePicFolder + "\\" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+                var bitmap = "data:image/" + ext;
+                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "\\" + user.profilepic, 'base64', 'utf-8');
+                profilepic = bitmap;
             }
             else {
                 profilepic = "";
