@@ -45,8 +45,8 @@ logger.add(new winston.transports.Console({
 }));
 
 const db = require("./app/models");
-//const Role = db.role;
-//const AppSettings = db.appsettings;
+const Role = db.role;
+const AppSettings = db.appsettings;
 db.sequelize.sync();
 
 //db.sequelize.sync({ force: true }).then(() => {
