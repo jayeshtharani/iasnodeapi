@@ -490,10 +490,11 @@ exports.getcustomer = (req, res) => {
         }
         var profilepic = "";
         if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + "\\" + user.profilepic)) {
-                const ext = (uploadProfilePicFolder + "\\" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+            if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
+                
+                const ext = (uploadProfilePicFolder + "/" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
                 var bitmap = "data:image/" + ext;
-                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "\\" + user.profilepic, 'base64', 'utf-8');
+                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + user.profilepic, 'base64', 'utf-8');
                 profilepic = bitmap;
             }
             else {
