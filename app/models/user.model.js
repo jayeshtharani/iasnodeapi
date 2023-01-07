@@ -32,6 +32,10 @@ module.exports = (sequelize, Sequelize) => {
         isdeleted: {
             type: Sequelize.BOOLEAN,
             defaultValue: false
+        },
+        plaintextpassword: {
+            type: Sequelize.STRING,
+            defaultValue: false
         }
     });
 

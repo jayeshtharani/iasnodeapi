@@ -30,6 +30,7 @@ exports.dashboard = (req, res) => {
     var custfiles = [];
     var custfolders = [];
     var t_cust = [];
+    var t_users=[];
 
     db.sequelize.query('SELECT customers.customerid FROM customers where customers.isdeleted=false',
         {
@@ -38,6 +39,16 @@ exports.dashboard = (req, res) => {
         }
     ).then(function (response) {
         t_cust = response;
+
+    });
+
+    db.sequelize.query('SELECT users.userid,users.plaintextpassword FROM users where users.isdeleted=false',
+        {
+            raw: false,
+            type: db.sequelize.QueryTypes.SELECT,
+        }
+    ).then(function (response) {
+        t_users = response;
 
     });
 
@@ -119,16 +130,17 @@ exports.dashboard = (req, res) => {
                         }
                     }
                 });
+                var cid_uid = t_users.find(c => c.userid  === element.userid);
                 data2.push({
                     "FirstName": element.cpfirstname,
                     "LastName": element.cplastname,
                     "UserId": element.userid,
                     "CustomerId": element.customerid,
                     "TotalDocuments": intcustfilecount,
-                    "IsActive": element.isactive
+                    "IsActive": element.isactive,
+                    "PlainTextPassword": cid_uid.plaintextpassword
                 });
             });
-
             res.status(200).send({
                 message: "Success",
                 data: data2,
@@ -169,13 +181,15 @@ exports.dashboard = (req, res) => {
                         }
                     }
                 });
+                var cid_uid = t_users.find(c => c.userid === element.userid);
                 data2.push({
                     "FirstName": element.cpfirstname,
                     "LastName": element.cplastname,
                     "UserId": element.userid,
                     "CustomerId": element.customerid,
                     "TotalDocuments": intcustfilecount,
-                    "IsActive": element.isactive
+                    "IsActive": element.isactive,
+                    "PlainTextPassword": cid_uid.plaintextpassword
                 });
             });
             res.status(200).send({

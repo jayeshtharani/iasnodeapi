@@ -69,6 +69,7 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
     User.create({
         username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
         email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
+        plaintextpassword: password,
         password: bcrypt.hashSync(password, 8)
     }).then(userResult => {
         userResult.setRoles([1]).then(roleResult => {
@@ -78,16 +79,16 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
             regmessage += ",";
             regmessage += "</p>";
 
-            regmessage += "<p>A new admin account with Indo Aerospace Solution Pvt. Ltd.has been created for you.</p>";
+            regmessage += "<p>A new admin account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
             regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
-            regmessage += "<p>Credentials: " + password;
+            regmessage += "<p>Password: " + password;
             regmessage += "</p>";
             regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
             regmessage += "<p></p>";
             regmessage += "Thank You, <br/>";
-            regmessage += "Team ISAPL";
+            regmessage += "Team Indo Aerospace Solutions";
             send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
-                , "Welcome to IASPL!", regmessage);
+                , "Welcome to Indo Aerospace Solutions", regmessage);
             res.status(200).send({
                 data: userResult.userid,
                 message: "Success"
@@ -112,6 +113,7 @@ exports.forgotpassword = (req, res) => {
         User.update(
             {
                 password: bcrypt.hashSync(req.body.newpassword, 8),
+                plaintextpassword: sanitizeHtml(req.body.newpassword, { allowedTags: [], allowedAttributes: {} })
             },
             {
                 where: { userid: sanitizeHtml(user.userid, { allowedTags: [], allowedAttributes: {} }) },
@@ -138,7 +140,7 @@ exports.changepassword = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "User Not found." });
         }
-        
+
         var passwordIsValid = bcrypt.compareSync(
             sanitizeHtml(req.body.currentpassword),
             user.password
@@ -153,6 +155,7 @@ exports.changepassword = (req, res) => {
         User.update(
             {
                 password: bcrypt.hashSync(req.body.newpassword, 8),
+                plaintextpassword: sanitizeHtml(req.body.newpassword, { allowedTags: [], allowedAttributes: {} })
             },
             {
                 where: { userid: sanitizeHtml(req.userid, { allowedTags: [], allowedAttributes: {} }) },

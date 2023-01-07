@@ -239,6 +239,7 @@ exports.create = (req, res) => {
     User.create({
         username: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) + " " + sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
         email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
+        plaintextpassword: password,
         password: bcrypt.hashSync(password, 8)
     }).then(userResult => {
         userResult.setRoles([2]).then(roleResult => {
@@ -263,16 +264,16 @@ exports.create = (req, res) => {
                 regmessage += ",";
                 regmessage += "</p>";
 
-                regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd.has been created for you.</p>";
+                regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
                 regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
-                regmessage += "<p>Credentials: " + password;
+                regmessage += "<p>Password: " + password;
                 regmessage += "</p>";
                 regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
                 regmessage += "<p></p>";
                 regmessage += "Thank You, <br/>";
-                regmessage += "Team ISAPL";
+                regmessage += "Team Indo Aerospace Solutions";
                 send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
-                    , "Welcome to IASPL!", regmessage);
+                    , "Welcome to Indo Aerospace Solutions", regmessage);
                 res.status(200).send({
                     data: custResult.customerid,
                     message: "Success"
@@ -561,7 +562,6 @@ exports.dashboard = (req, res) => {
             return res.status(404).send({ data: null, message: "Customer Not active." });
         }
     });
-
 
     db.sequelize.query('SELECT customerfolders.customerfolderid, customerfolders.foldername FROM customerfolders inner join customers on customers.customerid = customerfolders.customerid inner join users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and users.isactive = true and customers.isdeleted = false and customers.isactive = true and users.userid = :userid order by customerfolders.updatedAt desc',
         {

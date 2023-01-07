@@ -40,7 +40,5 @@ module.exports = function (app) {
 
     app.get("/api/customer/getfolders/:customerid", [authJwt.verifyToken, authJwt.isAdmin], controller.getfolders);
 
-    //app.get("/api/customer/profilepic/:customerid",  controller.getprofilepic);
-
     app.post("/api/customer/downloadfile/:customerfileid", [authJwt.verifyToken],controller.downloadfile);
 };
