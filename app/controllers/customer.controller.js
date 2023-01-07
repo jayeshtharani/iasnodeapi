@@ -10,12 +10,9 @@ const formidable = require('formidable');
 const path = require('path');
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
 const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
-//const defualtPIC = path.join(__dirname, "../uploads", "defualt_profile.png");
 const fs = require('fs');
 const os = require('os');
 var url = require('url');
-//const URL_PROFILEPIC = 'http://localhost:8080/api/customer/profilepic/';
-//const URL_FILES = 'http://localhost:8080/uploads/files/';
 const send_email_message = require('../middleware/emailer');
 
 const isFileValidProfilePic = (file) => {
@@ -96,7 +93,6 @@ exports.uploadprofilepic = (req, res) => {
                             const ext = (newPath).split('.').filter(Boolean).slice(1).join('.');
                             var bitmap = "data:image/" + ext;
                             bitmap += ";base64," + fs.readFileSync(newPath, 'base64', 'utf-8');
-                            //return res.status(200).send({ data: URL_PROFILEPIC + newFilename, message: "Success" });
                             return res.status(200).send({ data: bitmap, message: "Success" });
                         });
                     });
@@ -373,31 +369,6 @@ exports.getfolders = (req, res) => {
     });
 };
 
-
-
-//exports.getprofilepic = (req, res) => {
-//    const { customerid } = req.params;
-
-//    Customer.findOne({
-//        where: {
-//            customerid: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
-//            isdeleted: false
-//        }
-//    }).then(user => {
-//        if (!user) {
-//            //return res.sendFile(defualtPIC);
-//            return fs.readFile(defualtPIC);
-
-//        }
-//        if (fs.existsSync(uploadProfilePicFolder + "\\" + user.profilepic)) {
-//            const fileaa = uploadProfilePicFolder + "\\" + user.profilepic;
-//            return res.sendFile(fileaa);
-//        } else {
-//            return res.sendFile(defualtPIC);
-//        }
-//    });
-//};
-
 exports.downloadfile = (req, res) => {
     const { customerfileid } = req.params;
     CustomerFiles.findOne({
@@ -409,8 +380,8 @@ exports.downloadfile = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "File not found" });
         }
-        if (fs.existsSync(uploadFilesFolder + "\\" + user.customerfilepath)) {
-            const fileaa = uploadFilesFolder + "\\" + user.customerfilepath;
+        if (fs.existsSync(uploadFilesFolder + "/" + user.customerfilepath)) {
+            const fileaa = uploadFilesFolder + "/" + user.customerfilepath;
             return res.download(fileaa);
         } else {
             return res.status(404).send({ data: null, message: "File not found" });
@@ -654,7 +625,6 @@ exports.dashboard = (req, res) => {
         var profilepic = "";
         if (user.profilepic) {
             if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-                //profilepic = URL_PROFILEPIC + user.profilepic;
                 const ext = (uploadProfilePicFolder + "/" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
                 var bitmap = "data:image/" + ext;
                 bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + user.profilepic, 'base64', 'utf-8');

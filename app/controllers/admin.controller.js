@@ -9,10 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 var url = require('url');
-//const URL_PROFILEPIC = 'http://localhost:8080/uploads/profilepic/';
-//const URL_FILES = 'http://localhost:8080/uploads/files/';
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
-//const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
 const Op = db.Sequelize.Op;
 
 exports.dashboard = (req, res) => {
