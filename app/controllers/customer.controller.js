@@ -456,7 +456,7 @@ exports.getcustomer = (req, res) => {
         cf.forEach(element => {
             var custfilepath = "";
             if (element.customerfilepath) {
-                if (fs.existsSync(uploadFilesFolder + "\\" + element.customerfilepath)) {
+                if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
                     custfilepath = element.customerfilepath;
                 }
                 else {
