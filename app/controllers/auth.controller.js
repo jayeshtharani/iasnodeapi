@@ -82,10 +82,10 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
             regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
             regmessage += "<p>Credentials: " + password;
             regmessage += "</p>";
-
+            regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
             regmessage += "<p></p>";
             regmessage += "Thank You, <br/>";
-            regmessage += "ISAPL";
+            regmessage += "Team ISAPL";
             send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
                 , "Welcome to IASPL!", regmessage);
             res.status(200).send({
