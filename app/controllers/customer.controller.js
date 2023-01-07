@@ -387,7 +387,7 @@ exports.getfolders = (req, res) => {
 //        if (!user) {
 //            //return res.sendFile(defualtPIC);
 //            return fs.readFile(defualtPIC);
-               
+
 //        }
 //        if (fs.existsSync(uploadProfilePicFolder + "\\" + user.profilepic)) {
 //            const fileaa = uploadProfilePicFolder + "\\" + user.profilepic;
@@ -445,7 +445,7 @@ exports.getcustomer = (req, res) => {
     });
 
     CustomerFiles.findAll({
-        attributes: ['customerfileid', 'customerfilepath', 'filetags', 'customerfolderid', 'customerfilename'],
+        attributes: ['customerfileid', 'customerfilepath', 'filetags', 'customerfolderid', 'customerfilename', 'createdAt'],
         where: {
             isdeleted: false,
             customerid: customerid
@@ -471,6 +471,7 @@ exports.getcustomer = (req, res) => {
                     "customerfileid": element.customerfileid,
                     "filetags": element.filetags,
                     "customerfolderid": element.customerfolderid,
+                    "createdat": element.createdAt
                 });
             }
 
@@ -491,7 +492,7 @@ exports.getcustomer = (req, res) => {
         var profilepic = "";
         if (user.profilepic) {
             if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-                
+
                 const ext = (uploadProfilePicFolder + "/" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
                 var bitmap = "data:image/" + ext;
                 bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + user.profilepic, 'base64', 'utf-8');
@@ -607,7 +608,7 @@ exports.dashboard = (req, res) => {
     });
 
 
-    db.sequelize.query('SELECT customerfiles.customerfileid,customerfiles.filetags,customerfiles.customerfilepath,customerfiles.customerfilename,customerfiles.customerfolderid FROM docmanager.customerfiles inner join docmanager.customers on customers.customerid=customerfiles.customerid inner join docmanager.users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and users.isactive=true and customers.isdeleted=false and customers.isactive=true and users.userid= :userid order by customerfiles.updatedAt desc',
+    db.sequelize.query('SELECT customerfiles.createdAt,customerfiles.customerfileid,customerfiles.filetags,customerfiles.customerfilepath,customerfiles.customerfilename,customerfiles.customerfolderid FROM docmanager.customerfiles inner join docmanager.customers on customers.customerid=customerfiles.customerid inner join docmanager.users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and users.isactive=true and customers.isdeleted=false and customers.isactive=true and users.userid= :userid order by customerfiles.updatedAt desc',
         {
             raw: false,
             type: db.sequelize.QueryTypes.SELECT,
@@ -630,7 +631,8 @@ exports.dashboard = (req, res) => {
                     "customerfileid": element.customerfileid,
                     "filetags": element.filetags,
                     "customerfolderid": element.customerfolderid,
-                    "customerfilename": element.customerfilename
+                    "customerfilename": element.customerfilename,
+                    "createdat":element.createdAt
                 });
             }
 
