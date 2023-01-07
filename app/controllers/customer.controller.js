@@ -26,7 +26,7 @@ const isFileValidProfilePic = (file) => {
 
 const isFileValid = (file) => {
     const type = path.extname(file.originalFilename);
-    const validTypes = [".pdf", ".pdfx", ".doc", ".docx"];
+    const validTypes = [".pdf", ".pdfx", ".doc", ".docx", ".ppt", ".pptx", ".jpeg", ".jpg", ".png", ".xls", ".xlsx"];
     if (validTypes.indexOf(type) === -1) {
         return false;
     }
@@ -389,7 +389,7 @@ exports.downloadfile = (req, res) => {
         }
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
-    });;
+    });
 };
 exports.getcustomer = (req, res) => {
     const { customerid } = req.params;
@@ -650,6 +650,56 @@ exports.dashboard = (req, res) => {
             data: data
         });
 
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+
+};
+
+exports.getfolderfiles = (req, res) => {
+    var  customerfolderid  = sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} });
+    var custfiles = [];
+    db.sequelize.query('SELECT customerfiles.createdAt,customerfiles.customerfileid,customerfiles.filetags,customerfiles.customerfilepath,customerfiles.customerfilename,customerfiles.customerfolderid FROM docmanager.customerfiles where customerfiles.isdeleted=false and customerfiles.customerfolderid= :customerfolderid order by customerfiles.updatedAt desc',
+        {
+            raw: false,
+            type: db.sequelize.QueryTypes.SELECT,
+            replacements: { customerfolderid: customerfolderid },
+        }
+    ).then(function (response) {
+        response.forEach(element => {
+            var custfilepath = "";
+            if (element.customerfilepath) {
+                if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
+                    custfilepath = element.customerfilepath;
+                }
+                else {
+                    custfilepath = "";
+                }
+            }
+            if (custfilepath) {
+                custfiles.push({
+                    "customerfilepath": custfilepath,
+                    "customerfileid": element.customerfileid,
+                    "filetags": element.filetags,
+                    "customerfolderid": element.customerfolderid,
+                    "customerfilename": element.customerfilename,
+                    "createdat": element.createdAt
+                });
+            }
+
+        });
+    });
+
+    CustomerFolders.findOne({
+        where: {
+            customerfolderid: sanitizeHtml(customerfolderid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Folder not found" });
+        }
+        return res.status(200).send({ data: custfiles, message: "Success" });
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
     });

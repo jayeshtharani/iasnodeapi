@@ -112,7 +112,7 @@ exports.forgotpassword = (req, res) => {
         }
         User.update(
             {
-                password: bcrypt.hashSync(req.body.newpassword, 8),
+                password: bcrypt.hashSync(sanitizeHtml(req.body.newpassword, { allowedTags: [], allowedAttributes: {} }), 8),
                 plaintextpassword: sanitizeHtml(req.body.newpassword, { allowedTags: [], allowedAttributes: {} })
             },
             {
@@ -154,15 +154,13 @@ exports.changepassword = (req, res) => {
         }
         User.update(
             {
-                password: bcrypt.hashSync(req.body.newpassword, 8),
+                password: bcrypt.hashSync(sanitizeHtml(req.body.newpassword, { allowedTags: [], allowedAttributes: {} }), 8),
                 plaintextpassword: sanitizeHtml(req.body.newpassword, { allowedTags: [], allowedAttributes: {} })
             },
             {
                 where: { userid: sanitizeHtml(req.userid, { allowedTags: [], allowedAttributes: {} }) },
             }
         ).then(passResult => {
-
-            console.log(passResult);
             res.status(200).send({
                 data: req.userid, message: "Success"
             });

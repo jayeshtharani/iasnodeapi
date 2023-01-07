@@ -11,6 +11,7 @@ const os = require('os');
 var url = require('url');
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
 const Op = db.Sequelize.Op;
+var bcrypt = require("bcryptjs");
 
 exports.dashboard = (req, res) => {
     var q_offset = 0;
@@ -30,7 +31,7 @@ exports.dashboard = (req, res) => {
     var custfiles = [];
     var custfolders = [];
     var t_cust = [];
-    var t_users=[];
+    var t_users = [];
 
     db.sequelize.query('SELECT customers.customerid FROM customers where customers.isdeleted=false',
         {
@@ -130,7 +131,7 @@ exports.dashboard = (req, res) => {
                         }
                     }
                 });
-                var cid_uid = t_users.find(c => c.userid  === element.userid);
+                var cid_uid = t_users.find(c => c.userid === element.userid);
                 data2.push({
                     "FirstName": element.cpfirstname,
                     "LastName": element.cplastname,
@@ -244,6 +245,57 @@ exports.removecustomerfile = (req, res) => {
         });
     });
 };
+
+
+exports.setcustomerpassword = (req, res) => {
+
+   
+    db.sequelize.query('select customers.customerid, users.userid from customers inner join users on users.userid = customers.userid where customers.isdeleted = false and users.isdeleted = false and customers.customerid = :customerid and users.userid = :userid',
+        {
+            raw: true,
+            type: db.sequelize.QueryTypes.SELECT,
+            replacements: {
+                customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+                userid: sanitizeHtml(req.body.userid, { allowedTags: [], allowedAttributes: {} })
+            }
+
+        }
+    ).then(function (response) {
+        if (!response) {
+            return res.status(404).send({ data: null, message: "Inavlid Customer and UserId" });
+        }
+
+        if (response.length === 0) {
+            return res.status(404).send({ data: null, message: "Inavlid Customer and UserId" });
+        }
+        User.findOne({
+            where: {
+                userid: sanitizeHtml(req.body.userid, { allowedTags: [], allowedAttributes: {} }),
+                isdeleted: false
+            }
+        }).then(user => {
+            if (!user) {
+                return res.status(404).send({ data: null, message: "User Not found." });
+            }
+            User.update(
+                {
+                    password: bcrypt.hashSync(sanitizeHtml(req.body.newpassword, { allowedTags: [], allowedAttributes: {} }), 8),
+                    plaintextpassword: sanitizeHtml(req.body.newpassword, { allowedTags: [], allowedAttributes: {} })
+                },
+                {
+                    where: { userid: user.userid },
+                }
+            ).then(passResult => {
+                res.status(200).send({
+                    data: user.userid, message: "Success"
+                });
+            });
+
+        })
+    });
+};
+
+
 
 exports.removecustomerfolder = (req, res) => {
     Customer.findOne({
