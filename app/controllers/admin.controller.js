@@ -3,7 +3,7 @@ const config = require("../config/auth.config");
 const User = db.user;
 const Customer = db.customers;
 const CustomerFiles = db.customerfiles;
-const CustomerFolders = db.customerfolders;
+//const CustomerFolders = db.customerfolders;
 const sanitizeHtml = require('sanitize-html');
 const fs = require('fs');
 const path = require('path');
@@ -12,6 +12,7 @@ var url = require('url');
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
 const Op = db.Sequelize.Op;
 var bcrypt = require("bcryptjs");
+const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
 
 exports.dashboard = (req, res) => {
     var q_offset = 0;
@@ -29,7 +30,7 @@ exports.dashboard = (req, res) => {
         }
     }
     var custfiles = [];
-    var custfolders = [];
+    //var custfolders = [];
     var t_cust = [];
     var t_users = [];
 
@@ -80,37 +81,36 @@ exports.dashboard = (req, res) => {
             }
         });
     });
-    db.sequelize.query('SELECT customerfolders.customerfolderid,customerfolders.foldername FROM docmanager.customerfolders inner join docmanager.customers on customers.customerid = customerfolders.customerid inner join docmanager.users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and customers.isdeleted = false order by customerfolders.updatedAt desc',
-        {
-            raw: false,
-            type: db.sequelize.QueryTypes.SELECT,
+    //Folder logic needs to be commented 8 Jan 2023
+    //db.sequelize.query('SELECT customerfolders.customerfolderid,customerfolders.foldername FROM docmanager.customerfolders inner join docmanager.customers on customers.customerid = customerfolders.customerid inner join docmanager.users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and customers.isdeleted = false order by customerfolders.updatedAt desc',
+    //    {
+    //        raw: false,
+    //        type: db.sequelize.QueryTypes.SELECT,
 
-        }
-    ).then(function (response) {
-        response.forEach(element => {
-            custfolders.push({
-                "customerfolderid": element.customerfolderid,
-                "foldername": element.foldername,
-            });
-        });
-    });
+    //    }
+    //).then(function (response) {
+    //    response.forEach(element => {
+    //        custfolders.push({
+    //            "customerfolderid": element.customerfolderid,
+    //            "foldername": element.foldername,
+    //        });
+    //    });
+    //});
 
-    //if
+    
     if (searchname.length > 0) {
-        console.log('in if');
-        console.log(searchname);
         Customer.findAndCountAll({
-            attributes: ['customerid', 'cpfirstname', 'cplastname', 'isactive', 'userid'],
+            attributes: ['customerid', 'companyname', 'companyemail', 'isactive', 'userid','profilepic'],
             offset: q_offset,//page number starts from 0
             limit: q_limit,
             where: {
                 isdeleted: false,
                 [Op.or]: [
                     {
-                        cpfirstname: { [Op.substring]: searchname },
+                        companyname: { [Op.substring]: searchname },
                     },
                     {
-                        cplastname: { [Op.substring]: searchname },
+                        companyemail: { [Op.substring]: searchname },
                     },
                 ]
             },
@@ -131,15 +131,31 @@ exports.dashboard = (req, res) => {
                         }
                     }
                 });
+
+                var profilepic = "";
+                if (element.profilepic) {
+                    if (fs.existsSync(uploadProfilePicFolder + "/" + element.profilepic)) {
+
+                        const ext = (uploadProfilePicFolder + "/" + element.profilepic).split('.').filter(Boolean).slice(1).join('.');
+                        var bitmap = "data:image/" + ext;
+                        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + element.profilepic, 'base64', 'utf-8');
+                        profilepic = bitmap;
+                    }
+                    else {
+                        profilepic = "";
+                    }
+                }
+
                 var cid_uid = t_users.find(c => c.userid === element.userid);
                 data2.push({
-                    "FirstName": element.cpfirstname,
-                    "LastName": element.cplastname,
+                    "CompanyName": element.companyname,
+                    "CompanyEmail": element.companyemail,
                     "UserId": element.userid,
                     "CustomerId": element.customerid,
                     "TotalDocuments": intcustfilecount,
                     "IsActive": element.isactive,
-                    "PlainTextPassword": cid_uid.plaintextpassword
+                    "PlainTextPassword": cid_uid.plaintextpassword,
+                    "ProfilePic": profilepic
                 });
             });
             res.status(200).send({
@@ -147,7 +163,7 @@ exports.dashboard = (req, res) => {
                 data: data2,
                 "TotalCustomers": t_cust.length,
                 "TotalDocuments": custfiles.length,
-                "TotalFolders": custfolders.length,
+                //"TotalFolders": custfolders.length,
                 "CurrentPage": q_offset,
                 "TotalPages": Math.ceil(user.count / q_limit)
             });
@@ -159,7 +175,7 @@ exports.dashboard = (req, res) => {
 
     else {
         Customer.findAndCountAll({
-            attributes: ['customerid', 'cpfirstname', 'cplastname', 'isactive', 'userid'],
+            attributes: ['customerid', 'companyname', 'companyemail', 'isactive', 'userid','profilepic'],
             offset: q_offset,//page number starts from 0
             limit: q_limit,
             where: {
@@ -183,14 +199,29 @@ exports.dashboard = (req, res) => {
                     }
                 });
                 var cid_uid = t_users.find(c => c.userid === element.userid);
+                var profilepic = "";
+                if (element.profilepic) {
+                    if (fs.existsSync(uploadProfilePicFolder + "/" + element.profilepic)) {
+
+                        const ext = (uploadProfilePicFolder + "/" + element.profilepic).split('.').filter(Boolean).slice(1).join('.');
+                        var bitmap = "data:image/" + ext;
+                        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + element.profilepic, 'base64', 'utf-8');
+                        profilepic = bitmap;
+                    }
+                    else {
+                        profilepic = "";
+                    }
+                }
+
                 data2.push({
-                    "FirstName": element.cpfirstname,
-                    "LastName": element.cplastname,
+                    "CompanyName": element.companyname,
+                    "CompanyEmail": element.companyemail,
                     "UserId": element.userid,
                     "CustomerId": element.customerid,
                     "TotalDocuments": intcustfilecount,
                     "IsActive": element.isactive,
-                    "PlainTextPassword": cid_uid.plaintextpassword
+                    "PlainTextPassword": cid_uid.plaintextpassword,
+                    "ProfilePic": profilepic
                 });
             });
             res.status(200).send({
@@ -198,7 +229,7 @@ exports.dashboard = (req, res) => {
                 data: data2,
                 "TotalCustomers": user.count,
                 "TotalDocuments": custfiles.length,
-                "TotalFolders": custfolders.length,
+                //"TotalFolders": custfolders.length,
                 "CurrentPage": q_offset,
                 "TotalPages": Math.ceil(user.count / q_limit)
             });
@@ -248,8 +279,6 @@ exports.removecustomerfile = (req, res) => {
 
 
 exports.setcustomerpassword = (req, res) => {
-
-   
     db.sequelize.query('select customers.customerid, users.userid from customers inner join users on users.userid = customers.userid where customers.isdeleted = false and users.isdeleted = false and customers.customerid = :customerid and users.userid = :userid',
         {
             raw: true,
@@ -291,61 +320,61 @@ exports.setcustomerpassword = (req, res) => {
                 });
             });
 
-        })
-    });
-};
-
-
-
-exports.removecustomerfolder = (req, res) => {
-    Customer.findOne({
-        where: {
-            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-            isdeleted: false
-        }
-    }).then(custRes => {
-        if (!custRes) {
-            return res.status(404).send({ data: null, message: "Customer Not found." });
-        }
-        CustomerFolders.findOne({
-            where: {
-                customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-                customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
-                isdeleted: false
-            }
-        }).then(csfileRes => {
-            if (!csfileRes) {
-                return res.status(404).send({ data: null, message: "Customer Folder not found." });
-            }
-            CustomerFolders.update(
-                {
-                    isdeleted: true
-                },
-                {
-                    where: {
-                        customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-                        customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
-                    },
-                }
-            ).then(csUpateRes => {
-                CustomerFiles.update(
-                    {
-                        isdeleted: true
-                    },
-                    {
-                        where: {
-                            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-                            customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
-                        },
-                    }
-                ).then(fsResult => {
-
-                    return res.status(404).send({ data: custRes.customerid, message: "Success." });
-                });
-            });
         });
     });
 };
+
+
+//Folder logic needs to be commented 8 Jan 2023
+//exports.removecustomerfolder = (req, res) => {
+//    Customer.findOne({
+//        where: {
+//            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+//            isdeleted: false
+//        }
+//    }).then(custRes => {
+//        if (!custRes) {
+//            return res.status(404).send({ data: null, message: "Customer Not found." });
+//        }
+//        CustomerFolders.findOne({
+//            where: {
+//                customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+//                customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
+//                isdeleted: false
+//            }
+//        }).then(csfileRes => {
+//            if (!csfileRes) {
+//                return res.status(404).send({ data: null, message: "Customer Folder not found." });
+//            }
+//            CustomerFolders.update(
+//                {
+//                    isdeleted: true
+//                },
+//                {
+//                    where: {
+//                        customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+//                        customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
+//                    },
+//                }
+//            ).then(csUpateRes => {
+//                CustomerFiles.update(
+//                    {
+//                        isdeleted: true
+//                    },
+//                    {
+//                        where: {
+//                            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+//                            customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
+//                        },
+//                    }
+//                ).then(fsResult => {
+
+//                    return res.status(404).send({ data: custRes.customerid, message: "Success." });
+//                });
+//            });
+//        });
+//    });
+//};
 
 exports.actdeactuser = (req, res) => {
     User.findOne({

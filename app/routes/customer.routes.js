@@ -2,8 +2,8 @@ const { authJwt } = require("../middleware");
 const { verifySignUp } = require("../middleware");
 const controller = require("../controllers/customer.controller");
 const { createCustomerValidator } = require('../validators/createcustomer.validator');
-const { createFolderValidator } = require('../validators/createfolder.validator');
-
+//const { createFolderValidator } = require('../validators/createfolder.validator');
+//const { createFileValidator } = require('../validators/createfile.validator');
 
 module.exports = function (app) {
 
@@ -20,13 +20,16 @@ module.exports = function (app) {
 
     app.post("/api/customer/uploadprofilepic", [authJwt.verifyToken, authJwt.isAdmin], controller.uploadprofilepic);
 
-    app.post("/api/customer/createfolder", [authJwt.verifyToken, authJwt.isAdmin], createFolderValidator, controller.createfolder);
+    //Folder logic needs to be commented 8 Jan 2023
+    //app.post("/api/customer/createfolder", [authJwt.verifyToken, authJwt.isAdmin], createFolderValidator, controller.createfolder);
 
     app.post("/api/customer/createfile", [authJwt.verifyToken, authJwt.isAdmin], controller.createfile);
 
-    app.get("/api/customer/getfolders/:customerid", [authJwt.verifyToken, authJwt.isAdmin], controller.getfolders);
+    //Folder logic needs to be commented 8 Jan 2023
+    //app.get("/api/customer/getfolders/:customerid", [authJwt.verifyToken, authJwt.isAdmin], controller.getfolders);
 
     app.post("/api/customer/downloadfile/:customerfileid", [authJwt.verifyToken], controller.downloadfile);
 
-    app.post("/api/customer/getfolderfiles", [authJwt.verifyToken], controller.getfolderfiles);
+    //Folder logic needs to be commented 8 Jan 2023
+    //app.post("/api/customer/getfolderfiles", [authJwt.verifyToken], controller.getfolderfiles);
 };
