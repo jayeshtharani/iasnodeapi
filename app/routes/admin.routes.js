@@ -2,10 +2,12 @@
 const { authJwt } = require("../middleware");
 const controller = require("../controllers/admin.controller");
 const { actDeactUserValidator } = require('../validators/actdeactuser.validator');
+const { removeUserValidator } = require('../validators/removeuser.validator');
 module.exports = function (app) {
 
     app.get("/api/admin/dashboard", [authJwt.verifyToken, authJwt.isAdmin], controller.dashboard);
     app.post("/api/admin/actdeactuser", [authJwt.verifyToken, authJwt.isAdmin], actDeactUserValidator, controller.actdeactuser);
+    app.post("/api/admin/removeuser", [authJwt.verifyToken, authJwt.isAdmin], removeUserValidator, controller.removeuser);
     app.post("/api/admin/removecustomerfile", [authJwt.verifyToken, authJwt.isAdmin], controller.removecustomerfile);
     //Folder logic needs to be commented 8 Jan 2023
     //app.post("/api/admin/removecustomerfolder", [authJwt.verifyToken, authJwt.isAdmin], controller.removecustomerfolder);

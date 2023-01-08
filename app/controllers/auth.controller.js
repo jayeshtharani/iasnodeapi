@@ -28,7 +28,7 @@ exports.signin = (req, res) => {
         if (!passwordIsValid) {
             return res.status(401).send({
                 data: null,
-                message: "Invalid Password!"
+                message: "Invalid User or Password!"
             });
         }
 

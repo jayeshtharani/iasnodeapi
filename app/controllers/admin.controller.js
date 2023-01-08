@@ -97,10 +97,10 @@ exports.dashboard = (req, res) => {
     //    });
     //});
 
-    
+
     if (searchname.length > 0) {
         Customer.findAndCountAll({
-            attributes: ['customerid', 'companyname', 'companyemail', 'isactive', 'userid','profilepic'],
+            attributes: ['customerid', 'companyname', 'companyemail', 'isactive', 'userid', 'profilepic'],
             offset: q_offset,//page number starts from 0
             limit: q_limit,
             where: {
@@ -175,7 +175,7 @@ exports.dashboard = (req, res) => {
 
     else {
         Customer.findAndCountAll({
-            attributes: ['customerid', 'companyname', 'companyemail', 'isactive', 'userid','profilepic'],
+            attributes: ['customerid', 'companyname', 'companyemail', 'isactive', 'userid', 'profilepic'],
             offset: q_offset,//page number starts from 0
             limit: q_limit,
             where: {
@@ -402,11 +402,59 @@ exports.actdeactuser = (req, res) => {
                     where: { userid: sanitizeHtml(req.body.userid, { allowedTags: [], allowedAttributes: {} }) },
                 }
             ).then(cr => {
-                res.status(200).send({ data: "Status Updated", message: "Success" });
+                return res.status(200).send({ data: "Status Updated", message: "Success" });
 
             });
         });
     }).catch(err => {
-        res.status(500).send({ data: null, message: err.message });
+        return res.status(500).send({ data: null, message: err.message });
+    });
+};
+
+exports.removeuser = (req, res) => {
+    Customer.findOne({
+        where: {
+            userid: sanitizeHtml(req.body.userid, { allowedTags: [], allowedAttributes: {} }),
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} })
+            ,isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+        User.update(
+            {
+                isdeleted: true
+            },
+            {
+                where: { userid: user.userid },
+            }
+        ).then((uupdres) => {
+            Customer.update(
+                {
+                    isdeleted: true
+                },
+                {
+                    where: {
+                        userid: sanitizeHtml(user.userid, { allowedTags: [], allowedAttributes: {} }),
+                        customerid: sanitizeHtml(user.customerid, { allowedTags: [], allowedAttributes: {} }),
+                    },
+                }
+            ).then((cusupdres) => {
+                CustomerFiles.update(
+                    {
+                        isdeleted: true
+                    },
+                    {
+                        where: {
+                            customerid: sanitizeHtml(user.customerid, { allowedTags: [], allowedAttributes: {} }),
+                        },
+                    }).then(fres => {
+                        return res.status(200).send({ data: user.companyemail + " User Removed", message: "Success" });
+                    });
+            });
+        });
+    }).catch(err => {
+        return res.status(500).send({ data: null, message: err.message });
     });
 };
