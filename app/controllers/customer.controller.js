@@ -238,7 +238,7 @@ exports.create = (req, res) => {
     }
 
     User.create({
-        username: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) + " " + sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
+        username: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
         email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
         plaintextpassword: password,
         password: bcrypt.hashSync(password, 8)
@@ -273,8 +273,8 @@ exports.create = (req, res) => {
                 regmessage += "<p></p>";
                 regmessage += "Thank You, <br/>";
                 regmessage += "Team Indo Aerospace Solutions";
-                send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
-                    , "Welcome to Indo Aerospace Solutions", regmessage);
+                //send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
+                //    , "Welcome to Indo Aerospace Solutions", regmessage);
                 res.status(200).send({
                     data: custResult.customerid,
                     message: "Success"

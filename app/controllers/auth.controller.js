@@ -87,8 +87,8 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
             regmessage += "<p></p>";
             regmessage += "Thank You, <br/>";
             regmessage += "Team Indo Aerospace Solutions";
-            send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
-                , "Welcome to Indo Aerospace Solutions", regmessage);
+            //send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
+            //    , "Welcome to Indo Aerospace Solutions", regmessage);
             res.status(200).send({
                 data: userResult.userid,
                 message: "Success"
