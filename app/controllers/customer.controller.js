@@ -398,7 +398,6 @@ exports.getcustomer = (req, res) => {
     const { customerid } = req.params;
     //var custfolders = [];
     var custfiles = [];
-
     //Folder logic needs to be commented 8 Jan 2023
     //CustomerFolders.findAll({
     //    attributes: ['customerfolderid', 'foldername'],
@@ -424,7 +423,7 @@ exports.getcustomer = (req, res) => {
         attributes: ['customerfileid', 'customerfilepath', 'filetags', 'customerfolderid', 'customerfilename', 'createdAt'],
         where: {
             isdeleted: false,
-            customerid: customerid
+            customerid: customerid,
         }, order: [
             ['updatedAt', 'DESC']
         ]
