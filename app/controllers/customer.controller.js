@@ -341,7 +341,7 @@ exports.getfolders = (req, res) => {
         var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
         var alldirs = [];
         var ctree = dirTree(custFolderPath, null, null, (item, path, stats) => {
-            alldirs.push(item.path.replace(uploadFilesFolder + '\\', ''));
+            alldirs.push(item.path.replace(uploadFilesFolder + '/', ''));
         });
         res.status(200).send({
             message: "Success",
