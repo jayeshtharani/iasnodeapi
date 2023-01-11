@@ -5,7 +5,7 @@ exports.loginValidator = [
         .isEmail().withMessage("Provide valid email"),
     body("password")
         .exists({ checkFalsy: true }).withMessage("Password is required")
-        .isLength({ min: 3 }).withMessage("Password should be at least 3 characters"),
+        .isLength({ min: 5 }).withMessage("Password should be at least 5 characters"),
     (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty())

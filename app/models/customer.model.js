@@ -25,31 +25,29 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING
         },
         cpfirstname: {
-            type: Sequelize.STRING,
-            allowNull: false
+            type: Sequelize.STRING
+            //,allowNull: false
         },
         cplastname: {
             type: Sequelize.STRING,
-            allowNull: false
+            //allowNull: false
         },
         cpgenderid: {
             type: Sequelize.TINYINT,
-            allowNull: false,
+            allowNull: true,
             defaultValue: '1'
         },
         cpemail: {
             type: Sequelize.STRING,
-            allowNull: false,
-            validate: {
-                isEmail: true
-            }
+            allowNull: true
         },
         cpphone: {
             type: Sequelize.STRING
         },
         cpdob: {
             type: Sequelize.DATEONLY,
-            allowNull: false,
+            allowNull: true,
+            defaultValue: Sequelize.NOW
         },
         cpnotes: {
             type: Sequelize.STRING
@@ -75,6 +73,9 @@ module.exports = (sequelize, Sequelize) => {
             },
             allowNull: false,
             unique: true,
+        },
+        rootfoldername: {
+            type: Sequelize.STRING
         }
     });
     return Customer;

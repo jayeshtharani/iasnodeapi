@@ -14,6 +14,8 @@ const fs = require('fs');
 const os = require('os');
 var url = require('url');
 const send_email_message = require('../middleware/emailer');
+const dateTime = require('date-and-time');
+const dirTree = require("directory-tree");
 
 const isFileValidProfilePic = (file) => {
     const type = path.extname(file.originalFilename);
@@ -133,64 +135,35 @@ exports.createfile = (req, res) => {
                             isdeleted: false
                         }
                     }).then(custResult => {
-
                         if (!custResult) {
                             return res.status(404).send({ data: null, message: "Customer not found" });
                         }
-
                         const file = files.myfile;
                         const isValid = isFileValid(file);
                         if (!isValid) {
                             return res.status(400).send({ data: null, message: "The file type is not a valid type", });
                         }
-
+                        var custfolderpath;
+                        if (fields.customerfolderpath) {
+                            custfolderpath = fields.customerfolderpath;
+                        }
+                        else {
+                            custfolderpath = custResult.rootfoldername;
+                        }
                         var oldPath = file.filepath;
                         var rawData = fs.readFileSync(oldPath);
-                        var newPathTemp = path.join(uploadFilesFolder, file.originalFilename);
+                        var newPathTemp = path.join(uploadFilesFolder, custfolderpath, file.originalFilename);
                         var originalfileNamewithoutextension = path.parse(newPathTemp).name;
                         var originalfileNameextension = path.extname(newPathTemp);
                         var newFilename = originalfileNamewithoutextension + "_" + yourTicks + originalfileNameextension;
-                        var newPath = path.join(uploadFilesFolder, newFilename);
+                        var newPath = path.join(uploadFilesFolder, custfolderpath, newFilename);
 
                         fs.writeFile(newPath, rawData, function (err) {
                             if (err) {
                                 return res.status(400).send({ data: null, message: err });
                             }
-                            //Folder logic needs to be commented 8 Jan 2023
-                            //if (fields.customerfolderid) {
-                            //    CustomerFolders.findOne({
-                            //        where: {
-                            //            customerid: fields.customerid,
-                            //            customerfolderid: fields.customerfolderid,
-                            //            isdeleted: false
-                            //        }
-                            //    }).then(custFoldRes => {
-                            //        if (!custFoldRes) {
-                            //            return res.status(400).send({ data: null, message: "Customer Folder doesn't exists", });
-                            //        }
-
-                            //        CustomerFiles.create({
-                            //            customerfolderid: custFoldRes.customerfolderid,
-                            //            customerfilepath: newFilename,
-                            //            customerid: custResult.customerid,
-                            //            customerfilename: sanitizeHtml(fields.customerfilename, { allowedTags: [], allowedAttributes: {} }),
-                            //            filetags: sanitizeHtml(fields.filetags, { allowedTags: [], allowedAttributes: {} }),
-                            //        }).then(fileResult => {
-                            //            return res.status(200).send({ data: newFilename, message: "Success" });
-                            //        });
-                            //    });
-                            //}
-                            //else {
-                                CustomerFiles.create({
-                                    customerfolderid: '',
-                                    customerfilepath: newFilename,
-                                    customerid: custResult.customerid,
-                                    customerfilename: sanitizeHtml(fields.customerfilename, { allowedTags: [], allowedAttributes: {} }),
-                                    filetags: sanitizeHtml(fields.filetags, { allowedTags: [], allowedAttributes: {} }),
-                                }).then(fileResult => {
-                                    return res.status(200).send({ data: newFilename, message: "Success" });
-                                });
-                            //}
+                            return res.status(200).send({ data: newFilename, message: "Success" });
+                            
                         });
                     });
                 }
@@ -207,36 +180,45 @@ exports.createfile = (req, res) => {
 
 };
 
-//Folder logic needs to be commented 8 Jan 2023
-//exports.createfolder = (req, res) => {
-//    Customer.findOne({
-//        where: {
-//            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-//            isdeleted: false
-//        }
-//    }).then(user => {
-//        if (!user) {
-//            return res.status(404).send({ data: null, message: "Customer Not found." });
-//        }
-//        CustomerFolders.create({
-//            foldername: sanitizeHtml(req.body.foldername, { allowedTags: [], allowedAttributes: {} }),
-//            customerid: user.customerid,
-//        }).then(userResult => {
-//            res.status(200).send({ data: userResult.customerfolderid, message: "Success" });
-//        });
-//    }).catch(err => {
-//        res.status(500).send({ data: null, message: err.message });
-//    });
-//};
+
+exports.createfolder = (req, res) => {
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+        var custfolderpath;
+        if (req.body.customerfolderpath) {
+            custfolderpath = req.body.customerfolderpath;
+        }
+        else {
+            custfolderpath = user.rootfoldername;
+        }
+        var crtfolderpath = path.join(uploadFilesFolder, custfolderpath, sanitizeHtml(req.body.foldername, { allowedTags: [], allowedAttributes: {} }));
+        if (!fs.existsSync(crtfolderpath)) {
+            fs.mkdirSync(crtfolderpath);
+        }
+        res.status(200).send({ data: sanitizeHtml(req.body.foldername, { allowedTags: [], allowedAttributes: {} }), message: "Success" });
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+};
 
 exports.create = (req, res) => {
     var length = 12,
         charset = "@#$&*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$&*0123456789abcdefghijklmnopqrstuvwxyz",
-        password = "";
+        password = "",
+        cdate = new Date();
     for (var i = 0, n = charset.length; i < length; ++i) {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
 
+    var foldername = sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).substring(0,
+        sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).indexOf("@"));
     User.create({
         username: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
         email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
@@ -246,39 +228,53 @@ exports.create = (req, res) => {
         userResult.setRoles([2]).then(roleResult => {
             Customer.create({
                 companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
-                companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }),
+                companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }) || '',
                 companyemail: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
-                companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }),
+                companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }) || '',
                 cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }),
-                cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
-                cpgenderid: req.body.cpgenderid,
-                cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }),
-                cpdob: req.body.cpdob,
-                cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }),
+                cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }) || '',
+                cpgenderid: req.body.cpgenderid || 1,
+                cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }) || '',
+                cpdob: req.body.cpdob || dateTime.format(cdate, "YYYY-MM-DD"),
+                cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }) || '',
                 userid: userResult.userid,
-                profilepic: ''
+                profilepic: '',
+                rootfoldername: foldername
             }).then(custResult => {
+                var isSendMail = parseInt(req.body.sendmail) || 0;
+                if (isSendMail === 1) {
+                    var regmessage = "<p>";
+                    regmessage += "Hi ";
+                    regmessage += sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} });
+                    regmessage += ",";
+                    regmessage += "</p>";
+                    regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
+                    regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
+                    regmessage += "<p>Password: " + password;
+                    regmessage += "</p>";
+                    regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
+                    regmessage += "<p></p>";
+                    regmessage += "Thank You, <br/>";
+                    regmessage += "Team Indo Aerospace Solutions";
+                    send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
+                        , "Welcome to Indo Aerospace Solutions", regmessage);
+                }
 
-                var regmessage = "<p>";
-                regmessage += "Hi ";
-                regmessage += sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} });
-                regmessage += ",";
-                regmessage += "</p>";
-
-                regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
-                regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
-                regmessage += "<p>Password: " + password;
-                regmessage += "</p>";
-                regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
-                regmessage += "<p></p>";
-                regmessage += "Thank You, <br/>";
-                regmessage += "Team Indo Aerospace Solutions";
-                //send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
-                //    , "Welcome to Indo Aerospace Solutions", regmessage);
-                res.status(200).send({
-                    data: custResult.customerid,
-                    message: "Success"
+                var custFolderPath = path.join(uploadFilesFolder, foldername);
+                fs.access(custFolderPath, (error) => {
+                    if (error) {
+                        fs.mkdir(custFolderPath, { recursive: false }, (error) => {
+                            if (error) {
+                                console.log(error);
+                            } else {
+                                console.log("New Directory created successfully !!");
+                            }
+                        });
+                    } else {
+                        console.log("Given Directory already exists !!");
+                    }
                 });
+                res.status(200).send({ data: custResult.customerid, message: "Success" });
             });
         });
     }).catch(err => {
@@ -286,8 +282,8 @@ exports.create = (req, res) => {
     });
 };
 
-
 exports.edit = (req, res) => {
+    var cdate = new Date();
     const { customerid } = req.params;
     Customer.findOne({
         where: {
@@ -300,7 +296,7 @@ exports.edit = (req, res) => {
         }
         User.update(
             {
-                username: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) + " " + sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
+                username: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
             },
             {
                 where: { userid: sanitizeHtml(user.userid, { allowedTags: [], allowedAttributes: {} }) },
@@ -310,13 +306,13 @@ exports.edit = (req, res) => {
         Customer.update(
             {
                 companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
-                companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }),
-                companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }),
-                cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }),
-                cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }),
-                cpgenderid: req.body.cpgenderid,
-                cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }),
-                cpdob: req.body.cpdob,
+                companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }) || '',
+                companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }) || '',
+                cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) || '',
+                cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }) || '',
+                cpgenderid: req.body.cpgenderid || 1,
+                cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }) || '',
+                cpdob: req.body.cpdob || dateTime.format(cdate, "YYYY-MM-DD"),
                 cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }),
             },
             {
@@ -331,60 +327,51 @@ exports.edit = (req, res) => {
     });
 };
 
-//Folder logic needs to be commented 8 Jan 2023
-//exports.getfolders = (req, res) => {
-//    const { customerid } = req.params;
-//    Customer.findOne({
-//        where: {
-//            customerid: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
-//            isdeleted: false
-//        }
-//    }).then(user => {
-//        if (!user) {
-//            return res.status(404).send({ data: null, message: "Customer not found" });
-//        }
-//        CustomerFolders.findAll({
-//            attributes: ['customerfolderid', 'foldername'],
-//            where: {
-//                isdeleted: false
-//            }, order: [
-//                ['updatedAt', 'DESC']
-//            ]
-//        }).then(folderRes => {
-//            if (!folderRes) {
-//                return res.status(404).send({ data: null, message: "0 folders found" });
-//            }
-//            var data2 = [];
-//            folderRes.forEach(element => {
-//                data2.push({
-//                    "customerfolderid": element.customerfolderid,
-//                    "foldername": element.foldername,
-
-//                });
-//            });
-//            res.status(200).send({
-//                message: "Success",
-//                data: data2,
-//            });
-//        });
-//    }).catch(err => {
-//        res.status(500).send({ data: null, message: err.message });
-//    });
-//};
-
-exports.downloadfile = (req, res) => {
-    const { customerfileid } = req.params;
-    CustomerFiles.findOne({
+exports.getfolders = (req, res) => {
+    const { customerid } = req.params;
+    Customer.findOne({
         where: {
-            customerfileid: sanitizeHtml(customerfileid, { allowedTags: [], allowedAttributes: {} }),
+            customerid: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
             isdeleted: false
         }
     }).then(user => {
         if (!user) {
-            return res.status(404).send({ data: null, message: "File not found" });
+            return res.status(404).send({ data: null, message: "Customer not found" });
         }
-        if (fs.existsSync(uploadFilesFolder + "/" + user.customerfilepath)) {
-            const fileaa = uploadFilesFolder + "/" + user.customerfilepath;
+        var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
+        var alldirs = [];
+        var ctree = dirTree(custFolderPath, null, null, (item, path, stats) => {
+            alldirs.push(item.path.replace(uploadFilesFolder + '\\', ''));
+        });
+        res.status(200).send({
+            message: "Success",
+            data: alldirs,
+        });
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+};
+
+exports.downloadfile = (req, res) => {
+    
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer not found" });
+        }
+        var custfolderpath;
+        if (req.body.customerfolderpath) {
+            custfolderpath = req.body.customerfolderpath;
+        }
+        else {
+            custfolderpath = user.rootfoldername;
+        }
+        if (fs.existsSync(uploadFilesFolder + "/" + custfolderpath + "/" + req.body.filename)) {
+            const fileaa = uploadFilesFolder + "/" + custfolderpath + "/" + req.body.filename;
             return res.download(fileaa);
         } else {
             return res.status(404).send({ data: null, message: "File not found" });
@@ -609,7 +596,7 @@ exports.dashboard = (req, res) => {
                     "filetags": element.filetags,
                     //"customerfolderid": element.customerfolderid,
                     "customerfilename": element.customerfilename,
-                    "createdat":element.createdAt
+                    "createdat": element.createdAt
                 });
             }
 

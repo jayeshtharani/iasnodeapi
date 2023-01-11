@@ -2,7 +2,8 @@ const { authJwt } = require("../middleware");
 const { verifySignUp } = require("../middleware");
 const controller = require("../controllers/customer.controller");
 const { createCustomerValidator } = require('../validators/createcustomer.validator');
-//const { createFolderValidator } = require('../validators/createfolder.validator');
+const { editCustomerValidator } = require('../validators/editcustomer.validator');
+const { createFolderValidator } = require('../validators/createfolder.validator');
 //const { createFileValidator } = require('../validators/createfile.validator');
 
 module.exports = function (app) {
@@ -10,7 +11,7 @@ module.exports = function (app) {
     app.post("/api/customer/create", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkUserDuplicateEmail,
     verifySignUp.checkCustomerDuplicateEmail], createCustomerValidator, controller.create);
 
-    app.put("/api/customer/edit/:customerid", [authJwt.verifyToken, authJwt.isAdmin], createCustomerValidator, controller.edit);
+    app.put("/api/customer/edit/:customerid", [authJwt.verifyToken, authJwt.isAdmin], editCustomerValidator, controller.edit);
 
     app.get("/api/customer/dashboard", [authJwt.verifyToken, authJwt.isCustomer], controller.dashboard);
 
@@ -21,14 +22,14 @@ module.exports = function (app) {
     app.post("/api/customer/uploadprofilepic", [authJwt.verifyToken, authJwt.isAdmin], controller.uploadprofilepic);
 
     //Folder logic needs to be commented 8 Jan 2023
-    //app.post("/api/customer/createfolder", [authJwt.verifyToken, authJwt.isAdmin], createFolderValidator, controller.createfolder);
+    app.post("/api/customer/createfolder", [authJwt.verifyToken, authJwt.isAdmin], createFolderValidator, controller.createfolder);
 
     app.post("/api/customer/createfile", [authJwt.verifyToken, authJwt.isAdmin], controller.createfile);
 
     //Folder logic needs to be commented 8 Jan 2023
-    //app.get("/api/customer/getfolders/:customerid", [authJwt.verifyToken, authJwt.isAdmin], controller.getfolders);
+    app.get("/api/customer/getfolders/:customerid", [authJwt.verifyToken, authJwt.isAdmin], controller.getfolders);
 
-    app.post("/api/customer/downloadfile/:customerfileid", [authJwt.verifyToken], controller.downloadfile);
+    app.post("/api/customer/downloadfile", [authJwt.verifyToken], controller.downloadfile);
 
     //Folder logic needs to be commented 8 Jan 2023
     //app.post("/api/customer/getfolderfiles", [authJwt.verifyToken], controller.getfolderfiles);

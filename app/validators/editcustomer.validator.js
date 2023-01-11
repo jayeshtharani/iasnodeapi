@@ -1,5 +1,5 @@
 const { body, validationResult } = require("express-validator");
-exports.createCustomerValidator = [
+exports.editCustomerValidator = [
 
     body("companyname").exists({ checkFalsy: true }).withMessage("Company Name is required")
         .isString().withMessage("Company Name should be string")
@@ -32,9 +32,6 @@ exports.createCustomerValidator = [
 
     body("cpnotes").optional({ nullable: true, checkFalsy: true })
         .isLength({ min: 10 }).withMessage("Notes should be at least 10 characters"),
-
-    body("sendmail").exists({ checkFalsy: true }).withMessage("Send Mail Paramter is required")
-        .isInt({ min: 0, max: 1 }).withMessage("Send Mail should be 0 or 1"),
 
     (req, res, next) => {
         const errors = validationResult(req);

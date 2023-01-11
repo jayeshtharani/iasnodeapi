@@ -11,13 +11,15 @@ checkUserDuplicateEmail = (req, res, next) => {
         }
     }).then(user => {
         if (user) {
-            res.status(400).send({
+           return res.status(400).send({
                 data:null,
                 message: "Failed! User Email is already in use!"
             });
-            return;
+            
         }
-        next();
+        else {
+           return next();
+        }
     });
 };
 
@@ -29,13 +31,14 @@ checkCustomerDuplicateEmail = (req, res, next) => {
         }
     }).then(user => {
         if (user) {
-            res.status(400).send({
+           return res.status(400).send({
                 data: null,
                 message: "Failed! Customer Email is already in use!"
-            });
-            return;
+            });   
         }
-        next();
+        else {
+           return next();
+        }
     });
 };
 
