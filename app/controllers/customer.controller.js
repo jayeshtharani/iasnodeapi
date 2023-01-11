@@ -180,7 +180,6 @@ exports.createfile = (req, res) => {
 
 };
 
-
 exports.createfolder = (req, res) => {
     Customer.findOne({
         where: {
@@ -383,65 +382,7 @@ exports.downloadfile = (req, res) => {
 
 exports.getcustomer = (req, res) => {
     const { customerid } = req.params;
-    //var custfolders = [];
-    var custfiles = [];
-    //Folder logic needs to be commented 8 Jan 2023
-    //CustomerFolders.findAll({
-    //    attributes: ['customerfolderid', 'foldername'],
-    //    where: {
-    //        isdeleted: false,
-    //        customerid: customerid
-    //    }, order: [
-    //        ['updatedAt', 'DESC']
-    //    ]
-    //}).then(cfolder => {
-
-    //    cfolder.forEach(element => {
-    //        custfolders.push({
-    //            "customerfolderid": element.customerfolderid,
-    //            "foldername": element.foldername,
-    //        });
-    //    });
-    //    return custfolders;
-
-    //});
-
-    CustomerFiles.findAll({
-        attributes: ['customerfileid', 'customerfilepath', 'filetags', 'customerfolderid', 'customerfilename', 'createdAt'],
-        where: {
-            isdeleted: false,
-            customerid: customerid,
-        }, order: [
-            ['updatedAt', 'DESC']
-        ]
-    }).then(cf => {
-        cf.forEach(element => {
-            var custfilepath = "";
-            if (element.customerfilepath) {
-                if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
-                    custfilepath = element.customerfilepath;
-                }
-                else {
-                    custfilepath = "";
-                }
-            }
-            if (custfilepath) {
-
-                custfiles.push({
-                    "customerfilepath": custfilepath,
-                    "customerfilename": element.customerfilename,
-                    "customerfileid": element.customerfileid,
-                    "filetags": element.filetags,
-                    //"customerfolderid": element.customerfolderid,
-                    "createdat": element.createdAt
-                });
-            }
-
-
-        });
-        return custfiles;
-    });
-
+    
     Customer.findOne({
         where: {
             customerid: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
@@ -454,7 +395,6 @@ exports.getcustomer = (req, res) => {
         var profilepic = "";
         if (user.profilepic) {
             if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-
                 const ext = (uploadProfilePicFolder + "/" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
                 var bitmap = "data:image/" + ext;
                 bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + user.profilepic, 'base64', 'utf-8');
@@ -464,18 +404,26 @@ exports.getcustomer = (req, res) => {
                 profilepic = "";
             }
         }
+
+        var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
+        var alldirs = [];
+        var ctree = dirTree(custFolderPath, null, null, (item, path, stats) => {
+            alldirs.push(item.path.replace(uploadFilesFolder + '\\', ''));
+        });
+
         var data = [];
         data.push({
+            "RootFolder": user.rootfoldername,
             "CompanyName": user.companyname,
             "CompanyEmail": user.companyemail,
             "FirstName": user.cpfirstname,
             "LastName": user.cplastname,
             "CustomerId": user.customerid,
-            "TotalDocuments": custfiles.length,
-            //"TotalFolders": custfolders.length,
+            //"TotalDocuments": custfiles.length,
+            "TotalFolders": alldirs.length == 0 ? 0 : alldirs.length - 1,
             "ProfilePic": profilepic,
-            //"Folders": custfolders,
-            "Files": custfiles,
+            "Folders": alldirs,
+            //"Files": custfiles,
         });
         res.status(200).send({
             message: "Success",
@@ -536,7 +484,6 @@ exports.getcustomerprofile = (req, res) => {
         res.status(500).send({ data: null, message: err.message });
     });
 };
-
 
 exports.dashboard = (req, res) => {
     //var custfolders = [];
