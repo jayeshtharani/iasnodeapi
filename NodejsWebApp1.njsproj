@@ -49,6 +49,7 @@
     <Content Include="app\routes\admin.routes.js" />
     <Content Include="app\routes\customer.routes.js" />
     <Content Include="app\validators\editcustomer.validator.js" />
+    <Content Include="app\validators\getfolderfiles.validator.js" />
     <Content Include="app\validators\removeuser.validator.js" />
     <Content Include="app\validators\actdeactuser.validator.js" />
     <Content Include="app\validators\forgotpassword.validator.js" />

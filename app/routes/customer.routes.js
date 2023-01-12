@@ -4,7 +4,7 @@ const controller = require("../controllers/customer.controller");
 const { createCustomerValidator } = require('../validators/createcustomer.validator');
 const { editCustomerValidator } = require('../validators/editcustomer.validator');
 const { createFolderValidator } = require('../validators/createfolder.validator');
-//const { createFileValidator } = require('../validators/createfile.validator');
+const { getFolderFilesValidator } = require('../validators/getfolderfiles.validator');
 
 module.exports = function (app) {
 
@@ -32,5 +32,5 @@ module.exports = function (app) {
     app.post("/api/customer/downloadfile", [authJwt.verifyToken], controller.downloadfile);
 
     //Folder logic needs to be commented 8 Jan 2023
-    //app.post("/api/customer/getfolderfiles", [authJwt.verifyToken], controller.getfolderfiles);
+    app.post("/api/customer/getfolderfiles", [authJwt.verifyToken], getFolderFilesValidator, controller.getfolderfiles);
 };

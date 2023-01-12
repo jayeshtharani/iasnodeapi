@@ -163,7 +163,7 @@ exports.createfile = (req, res) => {
                                 return res.status(400).send({ data: null, message: err });
                             }
                             return res.status(200).send({ data: newFilename, message: "Success" });
-                            
+
                         });
                     });
                 }
@@ -327,6 +327,7 @@ exports.edit = (req, res) => {
 };
 
 exports.getfolders = (req, res) => {
+    console.log(process.platform);
     const { customerid } = req.params;
     Customer.findOne({
         where: {
@@ -340,7 +341,13 @@ exports.getfolders = (req, res) => {
         var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
         var alldirs = [];
         var ctree = dirTree(custFolderPath, null, null, (item, path, stats) => {
-            alldirs.push(item.path.replace(uploadFilesFolder + '/', ''));
+            if (process.platform === "win32") {
+                alldirs.push(item.path.replace(uploadFilesFolder + '\\', ''));
+            }
+            else {
+                alldirs.push(item.path.replace(uploadFilesFolder + '/', ''));
+            }
+
         });
         res.status(200).send({
             message: "Success",
@@ -352,7 +359,7 @@ exports.getfolders = (req, res) => {
 };
 
 exports.downloadfile = (req, res) => {
-    
+
     Customer.findOne({
         where: {
             customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
@@ -382,7 +389,13 @@ exports.downloadfile = (req, res) => {
 
 exports.getcustomer = (req, res) => {
     const { customerid } = req.params;
-    
+    var pjoiner;
+    if (process.platform === "win32") {
+        pjoiner = "\\";
+    }
+    else {
+        pjoiner = "/";
+    }
     Customer.findOne({
         where: {
             customerid: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
@@ -407,10 +420,17 @@ exports.getcustomer = (req, res) => {
 
         var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
         var alldirs = [];
-        var ctree = dirTree(custFolderPath, null, null, (item, path, stats) => {
-            alldirs.push(item.path.replace(uploadFilesFolder + '\\', ''));
-        });
-
+        var allfiles = [];
+        var allfolderdata = fs.readdirSync(custFolderPath);
+        for (var i in allfolderdata) {
+            var name = custFolderPath + pjoiner + allfolderdata[i];
+            if (fs.statSync(name).isDirectory()) {
+                alldirs.push({ name: path.basename(name), path: user.rootfoldername});
+            } else {
+               
+                allfiles.push({ name: path.basename(name), path: user.rootfoldername });
+            }
+        };
         var data = [];
         data.push({
             "RootFolder": user.rootfoldername,
@@ -419,11 +439,11 @@ exports.getcustomer = (req, res) => {
             "FirstName": user.cpfirstname,
             "LastName": user.cplastname,
             "CustomerId": user.customerid,
-            //"TotalDocuments": custfiles.length,
-            "TotalFolders": alldirs.length == 0 ? 0 : alldirs.length - 1,
+            "TotalDocuments": allfiles.length,
+            "TotalFolders": alldirs.length,
             "ProfilePic": profilepic,
             "Folders": alldirs,
-            //"Files": custfiles,
+            "Files": allfiles,
         });
         res.status(200).send({
             message: "Success",
@@ -486,70 +506,14 @@ exports.getcustomerprofile = (req, res) => {
 };
 
 exports.dashboard = (req, res) => {
-    //var custfolders = [];
-    var custfiles = [];
-    Customer.findOne({
-        where: {
-            userid: req.userid,
-            isdeleted: false
-        }
-    }).then(user => {
-        if (!user) {
-            return res.status(404).send({ data: null, message: "Customer not found" });
-        }
-        if (!user.isactive) {
-            return res.status(404).send({ data: null, message: "Customer Not active." });
-        }
-    });
-
-    //Folder logic needs to be commented 8 Jan 2023
-    //db.sequelize.query('SELECT customerfolders.customerfolderid, customerfolders.foldername FROM customerfolders inner join customers on customers.customerid = customerfolders.customerid inner join users  on users.userid = customers.userid where customerfolders.isdeleted = false and users.isdeleted = false and users.isactive = true and customers.isdeleted = false and customers.isactive = true and users.userid = :userid order by customerfolders.updatedAt desc',
-    //    {
-    //        raw: false,
-    //        type: db.sequelize.QueryTypes.SELECT,
-    //        replacements: { userid: req.userid },
-    //    }
-    //).then(function (response) {
-    //    response.forEach(element => {
-    //        custfolders.push({
-    //            "customerfolderid": element.customerfolderid,
-    //            "foldername": element.foldername,
-    //        });
-    //    });
-    //});
-
-
-    db.sequelize.query('SELECT customerfiles.createdAt,customerfiles.customerfileid,customerfiles.filetags,customerfiles.customerfilepath,customerfiles.customerfilename,customerfiles.customerfolderid FROM docmanager.customerfiles inner join docmanager.customers on customers.customerid=customerfiles.customerid inner join docmanager.users  on users.userid=customers.userid where customerfiles.isdeleted=false and users.isdeleted=false and users.isactive=true and customers.isdeleted=false and customers.isactive=true and users.userid= :userid order by customerfiles.updatedAt desc',
-        {
-            raw: false,
-            type: db.sequelize.QueryTypes.SELECT,
-            replacements: { userid: req.userid },
-        }
-    ).then(function (response) {
-        response.forEach(element => {
-            var custfilepath = "";
-            if (element.customerfilepath) {
-                if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
-                    custfilepath = element.customerfilepath;
-                }
-                else {
-                    custfilepath = "";
-                }
-            }
-            if (custfilepath) {
-                custfiles.push({
-                    "customerfilepath": custfilepath,
-                    "customerfileid": element.customerfileid,
-                    "filetags": element.filetags,
-                    //"customerfolderid": element.customerfolderid,
-                    "customerfilename": element.customerfilename,
-                    "createdat": element.createdAt
-                });
-            }
-
-        });
-    });
-
+   
+    var pjoiner;
+    if (process.platform === "win32") {
+        pjoiner = "\\";
+    }
+    else {
+        pjoiner = "/";
+    }
     Customer.findOne({
         where: {
             userid: req.userid,
@@ -574,6 +538,20 @@ exports.dashboard = (req, res) => {
                 profilepic = "";
             }
         }
+var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
+        var alldirs = [];
+        var allfiles = [];
+        var allfolderdata = fs.readdirSync(custFolderPath);
+        for (var i in allfolderdata) {
+            var name = custFolderPath + pjoiner + allfolderdata[i];
+            if (fs.statSync(name).isDirectory()) {
+                alldirs.push({ name: path.basename(name), path: user.rootfoldername });
+            } else {
+
+                allfiles.push({ name: path.basename(name), path: user.rootfoldername });
+            }
+        };
+
         var data = [];
         data.push({
             "CompanyName": user.companyname,
@@ -581,11 +559,11 @@ exports.dashboard = (req, res) => {
             "FirstName": user.cpfirstname,
             "LastName": user.cplastname,
             "CustomerId": user.customerid,
-            "TotalDocuments": custfiles.length,
-            //"TotalFolders": custfolders.length,
+            "TotalDocuments": allfiles.length,
+            "TotalFolders": alldirs.length,
             "ProfilePic": profilepic,
-            //"Folders": custfolders,
-            "Files": custfiles,
+            "Folders": alldirs,
+            "Files": allfiles,
         });
         res.status(200).send({
             message: "Success",
@@ -599,52 +577,59 @@ exports.dashboard = (req, res) => {
 };
 
 //Folder logic needs to be commented 8 Jan 2023
-//exports.getfolderfiles = (req, res) => {
-//    var  customerfolderid  = sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} });
-//    var custfiles = [];
-//    db.sequelize.query('SELECT customerfiles.createdAt,customerfiles.customerfileid,customerfiles.filetags,customerfiles.customerfilepath,customerfiles.customerfilename,customerfiles.customerfolderid FROM docmanager.customerfiles where customerfiles.isdeleted=false and customerfiles.customerfolderid= :customerfolderid order by customerfiles.updatedAt desc',
-//        {
-//            raw: false,
-//            type: db.sequelize.QueryTypes.SELECT,
-//            replacements: { customerfolderid: customerfolderid },
-//        }
-//    ).then(function (response) {
-//        response.forEach(element => {
-//            var custfilepath = "";
-//            if (element.customerfilepath) {
-//                if (fs.existsSync(uploadFilesFolder + "/" + element.customerfilepath)) {
-//                    custfilepath = element.customerfilepath;
-//                }
-//                else {
-//                    custfilepath = "";
-//                }
-//            }
-//            if (custfilepath) {
-//                custfiles.push({
-//                    "customerfilepath": custfilepath,
-//                    "customerfileid": element.customerfileid,
-//                    "filetags": element.filetags,
-//                    "customerfolderid": element.customerfolderid,
-//                    "customerfilename": element.customerfilename,
-//                    "createdat": element.createdAt
-//                });
-//            }
+exports.getfolderfiles = (req, res) => {
 
-//        });
-//    });
+    var pjoiner;
+    if (process.platform === "win32") {
+        pjoiner = "\\";
+    }
+    else {
+        pjoiner = "/";
+    }
 
-//    CustomerFolders.findOne({
-//        where: {
-//            customerfolderid: sanitizeHtml(customerfolderid, { allowedTags: [], allowedAttributes: {} }),
-//            isdeleted: false
-//        }
-//    }).then(user => {
-//        if (!user) {
-//            return res.status(404).send({ data: null, message: "Folder not found" });
-//        }
-//        return res.status(200).send({ data: custfiles, message: "Success" });
-//    }).catch(err => {
-//        res.status(500).send({ data: null, message: err.message });
-//    });
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer not found" });
+        }
+        
+        var custFolderPath;
 
-//};
+        if (user.rootfoldername === sanitizeHtml(req.body.customerfolderpath, { allowedTags: [], allowedAttributes: {} })) {
+            custFolderPath = path.join(uploadFilesFolder, user.rootfoldername, sanitizeHtml(req.body.customerfoldername, { allowedTags: [], allowedAttributes: {} }));
+        }
+        else {
+            custFolderPath = path.join(uploadFilesFolder, user.rootfoldername, sanitizeHtml(req.body.customerfolderpath, { allowedTags: [], allowedAttributes: {} }), sanitizeHtml(req.body.customerfoldername, { allowedTags: [], allowedAttributes: {} }));
+        }
+        var alldirs = [];
+        var allfiles = [];
+        var allfolderdata = fs.readdirSync(custFolderPath);
+        for (var i in allfolderdata) {
+            var name = custFolderPath + pjoiner + allfolderdata[i];
+            if (fs.statSync(name).isDirectory()) {
+                alldirs.push({ name: path.basename(name), path: name.replace(uploadFilesFolder + pjoiner, "") });
+            } else {
+                
+                allfiles.push({ name: path.basename(name), path: name.replace(uploadFilesFolder + pjoiner, "") });
+            }
+        };
+        var data = [];
+        data.push({
+            "Folders": alldirs,
+            "Files": allfiles,
+        });
+        res.status(200).send({
+            message: "Success",
+            data: data
+        });
+
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+
+
+};
