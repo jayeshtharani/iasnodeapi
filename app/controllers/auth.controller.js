@@ -7,6 +7,7 @@ var bcrypt = require("bcryptjs");
 const sanitizeHtml = require('sanitize-html');
 const send_email_message = require('../middleware/emailer');
 
+//DONE
 exports.signin = (req, res) => {
     User.findOne({
         where: {
@@ -58,7 +59,7 @@ exports.signin = (req, res) => {
     });
 };
 
-
+//DONE
 exports.appsignupbyadminhidethisapi = (req, res) => {
     var length = 12,
         charset = "@#$&*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$&*0123456789abcdefghijklmnopqrstuvwxyz",
@@ -102,7 +103,7 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
     });
 };
 
-
+//DONE
 exports.forgotpassword = (req, res) => {
     User.findOne({
         where: {
@@ -133,6 +134,7 @@ exports.forgotpassword = (req, res) => {
 
 };
 
+//DONE
 exports.changepassword = (req, res) => {
     User.findOne({
         where: {

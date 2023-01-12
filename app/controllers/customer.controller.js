@@ -35,7 +35,7 @@ const isFileValid = (file) => {
     return true;
 };
 
-
+//DONE
 exports.uploadprofilepic = (req, res) => {
     try {
         const form = new formidable.IncomingForm();
@@ -111,6 +111,7 @@ exports.uploadprofilepic = (req, res) => {
 
 };
 
+//DONE
 exports.createfile = (req, res) => {
     try {
         const form = new formidable.IncomingForm();
@@ -180,6 +181,7 @@ exports.createfile = (req, res) => {
 
 };
 
+//DONE
 exports.createfolder = (req, res) => {
     Customer.findOne({
         where: {
@@ -207,6 +209,7 @@ exports.createfolder = (req, res) => {
     });
 };
 
+//DONE
 exports.create = (req, res) => {
     var length = 12,
         charset = "@#$&*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$&*0123456789abcdefghijklmnopqrstuvwxyz",
@@ -281,6 +284,7 @@ exports.create = (req, res) => {
     });
 };
 
+//DONE
 exports.edit = (req, res) => {
     var cdate = new Date();
     const { customerid } = req.params;
@@ -326,8 +330,8 @@ exports.edit = (req, res) => {
     });
 };
 
+//DONE
 exports.getfolders = (req, res) => {
-    console.log(process.platform);
     const { customerid } = req.params;
     Customer.findOne({
         where: {
@@ -358,6 +362,7 @@ exports.getfolders = (req, res) => {
     });
 };
 
+//DONE
 exports.downloadfile = (req, res) => {
 
     Customer.findOne({
@@ -387,6 +392,7 @@ exports.downloadfile = (req, res) => {
     });
 };
 
+//DONE
 exports.getcustomer = (req, res) => {
     const { customerid } = req.params;
     var pjoiner;
@@ -407,10 +413,10 @@ exports.getcustomer = (req, res) => {
         }
         var profilepic = "";
         if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-                const ext = (uploadProfilePicFolder + "/" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+            if (fs.existsSync(uploadProfilePicFolder +pjoiner + user.profilepic)) {
+                const ext = (uploadProfilePicFolder + pjoiner + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
                 var bitmap = "data:image/" + ext;
-                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + user.profilepic, 'base64', 'utf-8');
+                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + user.profilepic, 'base64', 'utf-8');
                 profilepic = bitmap;
             }
             else {
@@ -528,10 +534,10 @@ exports.dashboard = (req, res) => {
         }
         var profilepic = "";
         if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-                const ext = (uploadProfilePicFolder + "/" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+            if (fs.existsSync(uploadProfilePicFolder + pjoiner+ user.profilepic)) {
+                const ext = (uploadProfilePicFolder + pjoiner + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
                 var bitmap = "data:image/" + ext;
-                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + user.profilepic, 'base64', 'utf-8');
+                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + user.profilepic, 'base64', 'utf-8');
                 profilepic = bitmap;
             }
             else {
@@ -576,9 +582,8 @@ var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
 
 };
 
-//Folder logic needs to be commented 8 Jan 2023
+//DONE
 exports.getfolderfiles = (req, res) => {
-
     var pjoiner;
     if (process.platform === "win32") {
         pjoiner = "\\";

@@ -250,34 +250,21 @@ exports.removecustomerfile = (req, res) => {
         if (!custRes) {
             return res.status(404).send({ data: null, message: "Customer Not found." });
         }
-        CustomerFiles.findOne({
-            where: {
-                customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-                customerfileid: sanitizeHtml(req.body.customerfileid, { allowedTags: [], allowedAttributes: {} }),
-                isdeleted: false
+        var custFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.customerfolderpath, { allowedTags: [], allowedAttributes: {} }),
+            sanitizeHtml(req.body.filename, { allowedTags: [], allowedAttributes: {} }));
+
+        fs.unlink(custFolderPath, (err) => {
+            if (err) {
+                console.error(err)
+                return res.status(404).send({ data: null, message: err });
             }
-        }).then(csfileRes => {
-            if (!csfileRes) {
-                return res.status(404).send({ data: null, message: "Customer File not found." });
-            }
-            CustomerFiles.update(
-                {
-                    isdeleted: true
-                },
-                {
-                    where: {
-                        customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-                        customerfileid: sanitizeHtml(req.body.customerfileid, { allowedTags: [], allowedAttributes: {} }),
-                    },
-                }
-            ).then(csUpateRes => {
-                return res.status(200).send({ data: custRes.customerid, message: "Success." });
-            });
+            return res.status(200).send({ data: "Customer file removed", message: "Success." });
         });
     });
 };
 
 
+//DONE
 exports.setcustomerpassword = (req, res) => {
     db.sequelize.query('select customers.customerid, users.userid from customers inner join users on users.userid = customers.userid where customers.isdeleted = false and users.isdeleted = false and customers.customerid = :customerid and users.userid = :userid',
         {
@@ -325,57 +312,26 @@ exports.setcustomerpassword = (req, res) => {
 };
 
 
-//Folder logic needs to be commented 8 Jan 2023
-//exports.removecustomerfolder = (req, res) => {
-//    Customer.findOne({
-//        where: {
-//            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-//            isdeleted: false
-//        }
-//    }).then(custRes => {
-//        if (!custRes) {
-//            return res.status(404).send({ data: null, message: "Customer Not found." });
-//        }
-//        CustomerFolders.findOne({
-//            where: {
-//                customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-//                customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
-//                isdeleted: false
-//            }
-//        }).then(csfileRes => {
-//            if (!csfileRes) {
-//                return res.status(404).send({ data: null, message: "Customer Folder not found." });
-//            }
-//            CustomerFolders.update(
-//                {
-//                    isdeleted: true
-//                },
-//                {
-//                    where: {
-//                        customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-//                        customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
-//                    },
-//                }
-//            ).then(csUpateRes => {
-//                CustomerFiles.update(
-//                    {
-//                        isdeleted: true
-//                    },
-//                    {
-//                        where: {
-//                            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
-//                            customerfolderid: sanitizeHtml(req.body.customerfolderid, { allowedTags: [], allowedAttributes: {} }),
-//                        },
-//                    }
-//                ).then(fsResult => {
+//DONE
+exports.removecustomerfolder = (req, res) => {
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(custRes => {
+        if (!custRes) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+        var custFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.customerfolderpath, { allowedTags: [], allowedAttributes: {} }),
+            sanitizeHtml(req.body.customerfoldername, { allowedTags: [], allowedAttributes: {} }));
+        fs.rmdirSync(custFolderPath, { recursive: true });
+        return res.status(200).send({ data: "Folder Removed", message: "Success" });
+    });
+};
 
-//                    return res.status(404).send({ data: custRes.customerid, message: "Success." });
-//                });
-//            });
-//        });
-//    });
-//};
 
+//DONE
 exports.actdeactuser = (req, res) => {
     User.findOne({
         where: {
@@ -411,12 +367,14 @@ exports.actdeactuser = (req, res) => {
     });
 };
 
+
+//DONE
 exports.removeuser = (req, res) => {
     Customer.findOne({
         where: {
             userid: sanitizeHtml(req.body.userid, { allowedTags: [], allowedAttributes: {} }),
             customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} })
-            ,isdeleted: false
+            , isdeleted: false
         }
     }).then(user => {
         if (!user) {
@@ -441,17 +399,9 @@ exports.removeuser = (req, res) => {
                     },
                 }
             ).then((cusupdres) => {
-                CustomerFiles.update(
-                    {
-                        isdeleted: true
-                    },
-                    {
-                        where: {
-                            customerid: sanitizeHtml(user.customerid, { allowedTags: [], allowedAttributes: {} }),
-                        },
-                    }).then(fres => {
-                        return res.status(200).send({ data: user.companyemail + " User Removed", message: "Success" });
-                    });
+                var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
+                fs.rmdirSync(custFolderPath, { recursive: true });
+                return res.status(200).send({ data: user.companyemail + " User Removed", message: "Success" });
             });
         });
     }).catch(err => {
