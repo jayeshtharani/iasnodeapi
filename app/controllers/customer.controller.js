@@ -35,6 +35,36 @@ const isFileValid = (file) => {
     return true;
 };
 
+const getAllDirFiles = function (dirPath, arrayOfFiles) {
+    var pjoiner;
+    if (process.platform === "win32") {
+        pjoiner = "\\";
+    }
+    else {
+        pjoiner = "/";
+    }
+    files = fs.readdirSync(dirPath);
+    arrayOfFiles = arrayOfFiles || [];
+    files.forEach(function (file) {
+        if (fs.statSync(dirPath + pjoiner + file).isDirectory()) {
+            arrayOfFiles = getAllDirFiles(dirPath + pjoiner + file, arrayOfFiles)
+        } else {
+            arrayOfFiles.push(file)
+        }
+    });
+    return arrayOfFiles;
+};
+
+const getAllDir = function (dirpath) {
+    var alldirs = [];
+    var ctree = dirTree(dirpath, null, null, (item, path, stats) => {
+        alldirs.push(item.path);
+    });
+    return alldirs;
+};
+
+
+
 //DONE
 exports.uploadprofilepic = (req, res) => {
     try {
@@ -374,15 +404,9 @@ exports.downloadfile = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "Customer not found" });
         }
-        var custfolderpath;
-        if (req.body.customerfolderpath) {
-            custfolderpath = req.body.customerfolderpath;
-        }
-        else {
-            custfolderpath = user.rootfoldername;
-        }
-        if (fs.existsSync(uploadFilesFolder + "/" + custfolderpath + "/" + req.body.filename)) {
-            const fileaa = uploadFilesFolder + "/" + custfolderpath + "/" + req.body.filename;
+
+        if (fs.existsSync(uploadFilesFolder + "/" + req.body.completepath)) {
+            const fileaa = uploadFilesFolder + "/" + req.body.completepath;
             return res.download(fileaa);
         } else {
             return res.status(404).send({ data: null, message: "File not found" });
@@ -413,7 +437,7 @@ exports.getcustomer = (req, res) => {
         }
         var profilepic = "";
         if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder +pjoiner + user.profilepic)) {
+            if (fs.existsSync(uploadProfilePicFolder + pjoiner + user.profilepic)) {
                 const ext = (uploadProfilePicFolder + pjoiner + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
                 var bitmap = "data:image/" + ext;
                 bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + user.profilepic, 'base64', 'utf-8');
@@ -431,12 +455,16 @@ exports.getcustomer = (req, res) => {
         for (var i in allfolderdata) {
             var name = custFolderPath + pjoiner + allfolderdata[i];
             if (fs.statSync(name).isDirectory()) {
-                alldirs.push({ name: path.basename(name), path: user.rootfoldername});
+                alldirs.push({ name: path.basename(name), path: path.join(user.rootfoldername, path.basename(name)) });
             } else {
-               
-                allfiles.push({ name: path.basename(name), path: user.rootfoldername });
+
+                allfiles.push({ name: path.basename(name), path: path.join(user.rootfoldername, path.basename(name)) });
             }
         };
+
+        var alldirs_r = getAllDir(custFolderPath);
+        var allfiles_r = getAllDirFiles(custFolderPath);
+
         var data = [];
         data.push({
             "RootFolder": user.rootfoldername,
@@ -445,8 +473,8 @@ exports.getcustomer = (req, res) => {
             "FirstName": user.cpfirstname,
             "LastName": user.cplastname,
             "CustomerId": user.customerid,
-            "TotalDocuments": allfiles.length,
-            "TotalFolders": alldirs.length,
+            "TotalDocuments": allfiles_r.length,
+            "TotalFolders": alldirs_r.length,
             "ProfilePic": profilepic,
             "Folders": alldirs,
             "Files": allfiles,
@@ -460,6 +488,7 @@ exports.getcustomer = (req, res) => {
     });
 };
 
+//done
 exports.getcustomerprofile = (req, res) => {
     const { customerid } = req.params;
 
@@ -511,8 +540,9 @@ exports.getcustomerprofile = (req, res) => {
     });
 };
 
+//done
 exports.dashboard = (req, res) => {
-   
+
     var pjoiner;
     if (process.platform === "win32") {
         pjoiner = "\\";
@@ -534,7 +564,7 @@ exports.dashboard = (req, res) => {
         }
         var profilepic = "";
         if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + pjoiner+ user.profilepic)) {
+            if (fs.existsSync(uploadProfilePicFolder + pjoiner + user.profilepic)) {
                 const ext = (uploadProfilePicFolder + pjoiner + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
                 var bitmap = "data:image/" + ext;
                 bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + user.profilepic, 'base64', 'utf-8');
@@ -544,29 +574,32 @@ exports.dashboard = (req, res) => {
                 profilepic = "";
             }
         }
-var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
+        var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
         var alldirs = [];
         var allfiles = [];
         var allfolderdata = fs.readdirSync(custFolderPath);
         for (var i in allfolderdata) {
             var name = custFolderPath + pjoiner + allfolderdata[i];
             if (fs.statSync(name).isDirectory()) {
-                alldirs.push({ name: path.basename(name), path: user.rootfoldername });
+                alldirs.push({ name: path.basename(name), path: path.join(user.rootfoldername, path.basename(name)) });
             } else {
 
-                allfiles.push({ name: path.basename(name), path: user.rootfoldername });
+                allfiles.push({ name: path.basename(name), path: path.join(user.rootfoldername, path.basename(name)) });
             }
         };
+        var alldirs_r = getAllDir(custFolderPath);
+        var allfiles_r = getAllDirFiles(custFolderPath);
 
         var data = [];
         data.push({
+            "RootFolder": user.rootfoldername,
             "CompanyName": user.companyname,
             "CompanyEmail": user.companyemail,
             "FirstName": user.cpfirstname,
             "LastName": user.cplastname,
             "CustomerId": user.customerid,
-            "TotalDocuments": allfiles.length,
-            "TotalFolders": alldirs.length,
+            "TotalDocuments": allfiles_r.length,
+            "TotalFolders": alldirs_r.length,
             "ProfilePic": profilepic,
             "Folders": alldirs,
             "Files": allfiles,
@@ -601,15 +634,10 @@ exports.getfolderfiles = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "Customer not found" });
         }
-        
-        var custFolderPath;
 
-        if (user.rootfoldername === sanitizeHtml(req.body.customerfolderpath, { allowedTags: [], allowedAttributes: {} })) {
-            custFolderPath = path.join(uploadFilesFolder, user.rootfoldername, sanitizeHtml(req.body.customerfoldername, { allowedTags: [], allowedAttributes: {} }));
-        }
-        else {
-            custFolderPath = path.join(uploadFilesFolder, user.rootfoldername, sanitizeHtml(req.body.customerfolderpath, { allowedTags: [], allowedAttributes: {} }), sanitizeHtml(req.body.customerfoldername, { allowedTags: [], allowedAttributes: {} }));
-        }
+        var custFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }));
+
+
         var alldirs = [];
         var allfiles = [];
         var allfolderdata = fs.readdirSync(custFolderPath);
@@ -618,7 +646,7 @@ exports.getfolderfiles = (req, res) => {
             if (fs.statSync(name).isDirectory()) {
                 alldirs.push({ name: path.basename(name), path: name.replace(uploadFilesFolder + pjoiner, "") });
             } else {
-                
+
                 allfiles.push({ name: path.basename(name), path: name.replace(uploadFilesFolder + pjoiner, "") });
             }
         };

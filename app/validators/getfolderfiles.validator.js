@@ -3,12 +3,9 @@ exports.getFolderFilesValidator = [
     body("customerid")
         .exists({ checkFalsy: true }).withMessage("Customerid is required")
         .isLength({ min: 36 }).withMessage("Inavlid Customerid"),
-    body("customerfolderpath")
-        .exists({ checkFalsy: true }).withMessage("Folderpath is required")
-        .isLength({ min: 1 }).withMessage("Inavlid Folderpath"),
-    body("customerfoldername")
-        .exists({ checkFalsy: true }).withMessage("Foldername is required")
-        .isLength({ min: 1 }).withMessage("Inavlid Foldername"),
+    body("completepath")
+        .exists({ checkFalsy: true }).withMessage("Complete Path is required")
+        .isLength({ min: 1 }).withMessage("Inavlid Complete Path"),
     (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty())
