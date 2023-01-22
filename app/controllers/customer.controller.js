@@ -55,12 +55,43 @@ const getAllDirFiles = function (dirPath, arrayOfFiles) {
     return arrayOfFiles;
 };
 
+
+
+
 const getAllDir = function (dirpath) {
     var alldirs = [];
     var ctree = dirTree(dirpath, null, null, (item, path, stats) => {
         alldirs.push(item.path);
     });
     return alldirs;
+};
+
+
+const getFileNameMatching = function (dirpath, withfilename) {
+    var allfilesindirs = getAllDirFiles(dirpath);
+    var files_last_cahr = [];
+    var files_last_cahr_ints = [];
+    for (const name of allfilesindirs) {
+        var onlynamewithoutext = path.parse(name).name;
+        var withfilenamewithoutext = path.parse(withfilename).name;
+        if (onlynamewithoutext.startsWith(withfilenamewithoutext)) {
+            var lastfilechar = onlynamewithoutext.slice(-1);
+            files_last_cahr.push(lastfilechar);
+        }
+    }
+    var isInteger = /^[0-9]\d*$/;
+    for (const arvalue of files_last_cahr) {
+        if (isInteger.test(arvalue)) {
+            files_last_cahr_ints.push(arvalue);
+        }
+    }
+    if (files_last_cahr_ints.length===0) {
+        return 0;
+    }
+    else {
+        return Math.max(...files_last_cahr_ints);
+    }
+    
 };
 
 
@@ -141,6 +172,8 @@ exports.uploadprofilepic = (req, res) => {
 
 };
 
+
+
 //DONE
 exports.createfile = (req, res) => {
     try {
@@ -153,10 +186,10 @@ exports.createfile = (req, res) => {
             if (err) {
                 return res.status(400).send({ data: null, message: err });
             }
-            var yourDate = new Date();
-            var epochTicks = 621355968000000000;
-            var ticksPerMillisecond = 10000;
-            var yourTicks = epochTicks + (yourDate.getTime() * ticksPerMillisecond);
+            //var yourDate = new Date();
+            //var epochTicks = 621355968000000000;
+            //var ticksPerMillisecond = 10000;
+            //var yourTicks = epochTicks + (yourDate.getTime() * ticksPerMillisecond);
 
             try {
                 if (!files.myfile.length) {
@@ -186,16 +219,32 @@ exports.createfile = (req, res) => {
                         var newPathTemp = path.join(uploadFilesFolder, custfolderpath, file.originalFilename);
                         var originalfileNamewithoutextension = path.parse(newPathTemp).name;
                         var originalfileNameextension = path.extname(newPathTemp);
-                        var newFilename = originalfileNamewithoutextension + "_" + yourTicks + originalfileNameextension;
+                        //var newFilename = originalfileNamewithoutextension + "_" + yourTicks + originalfileNameextension;
+                        var newFilename = originalfileNamewithoutextension + originalfileNameextension;
                         var newPath = path.join(uploadFilesFolder, custfolderpath, newFilename);
+                        if (fs.existsSync(newPath)) {
+                            //file abc.txt uploaded
+                            //next upload file abc.txt exists so it will rename to abc_1.txt
+                            //again user uploaded file abc.txt then abc_1.txt get updated
+                            var filenamematched = getFileNameMatching(path.join(uploadFilesFolder, custfolderpath), newFilename);
+                            var newappendedfilename = originalfileNamewithoutextension + "_" + (filenamematched + 1).toString() + originalfileNameextension;
+                            var newappendedfilepath = path.join(uploadFilesFolder, custfolderpath, newappendedfilename);
+                            fs.writeFile(newappendedfilepath, rawData, function (err) {
+                                if (err) {
+                                    return res.status(400).send({ data: null, message: err });
+                                }
+                                return res.status(200).send({ data: newappendedfilename, message: "Success" });
+                            });
+                        }
+                        else {
+                            fs.writeFile(newPath, rawData, function (err) {
+                                if (err) {
+                                    return res.status(400).send({ data: null, message: err });
+                                }
+                                return res.status(200).send({ data: newFilename, message: "Success" });
 
-                        fs.writeFile(newPath, rawData, function (err) {
-                            if (err) {
-                                return res.status(400).send({ data: null, message: err });
-                            }
-                            return res.status(200).send({ data: newFilename, message: "Success" });
-
-                        });
+                            });
+                        }
                     });
                 }
             }
@@ -207,8 +256,6 @@ exports.createfile = (req, res) => {
     catch (e) {
         return res.status(500).send({ data: null, message: e.message });
     }
-
-
 };
 
 //DONE
@@ -232,8 +279,11 @@ exports.createfolder = (req, res) => {
         var crtfolderpath = path.join(uploadFilesFolder, custfolderpath, sanitizeHtml(req.body.foldername, { allowedTags: [], allowedAttributes: {} }));
         if (!fs.existsSync(crtfolderpath)) {
             fs.mkdirSync(crtfolderpath);
+            return res.status(200).send({ data: sanitizeHtml(req.body.foldername, { allowedTags: [], allowedAttributes: {} }), message: "Success" });
         }
-        res.status(200).send({ data: sanitizeHtml(req.body.foldername, { allowedTags: [], allowedAttributes: {} }), message: "Success" });
+        else {
+            return res.status(406).send({ data: null, message: "Folder already exists." });
+        }
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
     });
