@@ -44,6 +44,33 @@ const getAllDir = function (dirpath) {
     return alldirs;
 };
 
+const getFileNameMatching = function (dirpath, withfilename) {
+    var allfilesindirs = getAllDirFiles(dirpath);
+    var files_last_cahr = [];
+    var files_last_cahr_ints = [];
+    for (const name of allfilesindirs) {
+        var onlynamewithoutext = path.parse(name).name;
+        var withfilenamewithoutext = path.parse(withfilename).name;
+        if (onlynamewithoutext.startsWith(withfilenamewithoutext)) {
+            var lastfilechar = onlynamewithoutext.slice(-1);
+            files_last_cahr.push(lastfilechar);
+        }
+    }
+    var isInteger = /^[0-9]\d*$/;
+    for (const arvalue of files_last_cahr) {
+        if (isInteger.test(arvalue)) {
+            files_last_cahr_ints.push(arvalue);
+        }
+    }
+    if (files_last_cahr_ints.length === 0) {
+        return 0;
+    }
+    else {
+        return Math.max(...files_last_cahr_ints);
+    }
+
+};
+
 exports.dashboard = (req, res) => {
     var pjoiner;
     if (process.platform === "win32") {
@@ -198,8 +225,6 @@ exports.dashboard = (req, res) => {
                         profilepic = "";
                     }
                 }
-
-
                 data2.push({
                     "CompanyName": element.companyname,
                     "CompanyEmail": element.companyemail,
@@ -243,6 +268,11 @@ exports.removecustomerfile = (req, res) => {
             return res.status(404).send({ data: null, message: "Customer Not found." });
         }
         var custFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }));
+
+        if (!sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }).startsWith(custRes.rootfoldername)) {
+            return res.status(404).send({ data: null, message: "Invalid Path" });
+        }
+
         fs.unlink(custFolderPath, (err) => {
             if (err) {
 
@@ -314,13 +344,129 @@ exports.removecustomerfolder = (req, res) => {
             return res.status(404).send({ data: null, message: "Customer Not found." });
         }
         var custFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }));
+
+        if (sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }) == custRes.rootfoldername) {
+            return res.status(404).send({ data: null, message: "Root folder cannot be removed" });
+        }
         fs.rm(custFolderPath, { recursive: true }, (err) => {
             if (err) {
                 return res.status(404).send({ data: null, message: "Folder not found" });
             }
             return res.status(200).send({ data: "Folder Removed", message: "Success" });
         });
+    });
+};
 
+
+exports.renamecustomerfolder = (req, res) => {
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(custRes => {
+        if (!custRes) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+
+        if (sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }) == custRes.rootfoldername) {
+            return res.status(404).send({ data: null, message: "Root folder cannot be renamed" });
+        }
+
+        var custFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }));
+
+        if (!fs.existsSync(custFolderPath)) {
+            return res.status(404).send({ data: null, message: "Folder not found" });
+        }
+
+        var renamedcustFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.newfolderpathwithname, { allowedTags: [], allowedAttributes: {} }));
+
+
+        if (!sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }).startsWith(custRes.rootfoldername)) {
+            return res.status(404).send({ data: null, message: "Invalid Complete Path" });
+        }
+
+        if (!sanitizeHtml(req.body.newfolderpathwithname, { allowedTags: [], allowedAttributes: {} }).startsWith(custRes.rootfoldername)) {
+            return res.status(404).send({ data: null, message: "Inavlid new folder path" });
+        }
+
+        if (fs.existsSync(renamedcustFolderPath)) {
+            return res.status(404).send({ data: null, message: "Folder with same name already exists" });
+        }
+
+        fs.rename(custFolderPath, renamedcustFolderPath, function (err) {
+            if (err) {
+                return res.status(404).send({ data: null, message: err });
+            } else {
+                return res.status(200).send({ data: "Folder Renamed", message: "Success" });
+            }
+        });
+    });
+};
+
+
+
+exports.renamecustomerfile = (req, res) => {
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(custRes => {
+        if (!custRes) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+
+        if (sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }) == custRes.rootfoldername) {
+            return res.status(404).send({ data: null, message: "Root folder cannot be renamed" });
+        }
+
+        var custFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }));
+
+
+        if (!fs.existsSync(custFolderPath)) {
+            return res.status(404).send({ data: null, message: "File not found" });
+        }
+
+        var renamedcustFolderPath = path.join(uploadFilesFolder, sanitizeHtml(req.body.newfilepathwithname, { allowedTags: [], allowedAttributes: {} }));
+
+
+        if (!sanitizeHtml(req.body.completepath, { allowedTags: [], allowedAttributes: {} }).startsWith(custRes.rootfoldername)) {
+            return res.status(404).send({ data: null, message: "Invalid Complete Path" });
+        }
+
+        if (!sanitizeHtml(req.body.newfilepathwithname, { allowedTags: [], allowedAttributes: {} }).startsWith(custRes.rootfoldername)) {
+            return res.status(404).send({ data: null, message: "Inavlid new file path" });
+        }
+
+        if (fs.existsSync(renamedcustFolderPath)) {
+
+            var filenamematched = getFileNameMatching(path.parse(custFolderPath).dir, path.basename(renamedcustFolderPath));
+            console.log('filenamematched=' + filenamematched);
+
+            var newappendedfilename = path.parse(renamedcustFolderPath).name + "_" + (filenamematched + 1).toString() + path.extname(renamedcustFolderPath);
+            console.log('newappendedfilename=' + newappendedfilename);
+
+            var newpath = renamedcustFolderPath.replace(path.parse(renamedcustFolderPath).base, newappendedfilename);
+            console.log('newpath=' + newpath);
+
+            fs.rename(custFolderPath, newpath, function (err) {
+                if (err) {
+                    console.log('in err')
+                    return res.status(400).send({ data: null, message: err });
+                }
+                return res.status(200).send({ data: newappendedfilename, message: "Success" });
+            });
+        }
+        else {
+            fs.rename(custFolderPath, renamedcustFolderPath, function (err) {
+                if (err) {
+                    return res.status(404).send({ data: null, message: err });
+                } else {
+                    return res.status(200).send({ data: "File Renamed", message: "Success" });
+                }
+            });
+        }
     });
 };
 
