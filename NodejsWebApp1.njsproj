@@ -39,8 +39,6 @@
     <Content Include="app\middleware\index.js" />
     <Content Include="app\middleware\verifySignUp.js" />
     <Content Include="app\models\app.settings.modal.js" />
-    <Content Include="app\models\customer.files.model.js" />
-    <Content Include="app\models\customer.folders.model.js" />
     <Content Include="app\models\index.js" />
     <Content Include="app\models\customer.model.js" />
     <Content Include="app\models\role.model.js" />

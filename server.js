@@ -53,8 +53,6 @@ db.sequelize.sync();
 //   console.log('Drop and Resync Database with { force: true }');
 //   initial();
 // });
-//initial();
-// routes
 require('./app/routes/auth.routes')(app);
 require('./app/routes/customer.routes')(app);
 require('./app/routes/admin.routes')(app);
@@ -65,19 +63,34 @@ app.listen(PORT, (err) => {
 });
 
 
-//function initial() {
-//    AppSettings.create({
-//        appkey: 'smtphost',
-//        appvalue: "smtp.elasticemail.com"
-//    });
+function initial() {
 
-//    AppSettings.create({
-//        appkey: "smtpport",
-//        appvalue: "25"
-//    });
+    Role.create({
+        roleid: 1,
+        name: "admin"
+    });
+    Role.create({
+        roleid: 2,
+        name: "customer"
+    });
 
-//    AppSettings.create({
-//        appkey: "smtpuser",
-//        appvalue: "jayeshtharani@gmail.com"
-//    });
-//}
+    AppSettings.create({
+        appkey: "smtpport",
+        appvalue: "25"
+    });
+
+    AppSettings.create({
+        appkey: "smtpuser",
+        appvalue: "jayeshtharani@gmail.com"
+    });
+
+    AppSettings.create({
+        appkey: "smtpkey",
+        appvalue: ""
+    });
+
+    AppSettings.create({
+        appkey: "passsecretkey",
+        appvalue: "app@8t7438*(%^(E)E(_)*WEFDXRTHAdjkchsdjcvh"
+    });
+}

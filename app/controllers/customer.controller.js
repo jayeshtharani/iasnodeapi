@@ -2,8 +2,6 @@ const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
 const Customer = db.customers;
-const CustomerFiles = db.customerfiles;
-//const CustomerFolders = db.customerfolders;
 var bcrypt = require("bcryptjs");
 const sanitizeHtml = require('sanitize-html');
 const formidable = require('formidable');
@@ -299,8 +297,9 @@ exports.create = (req, res) => {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
 
-    var foldername = sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).substring(0,
-        sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).indexOf("@"));
+    //var foldername = sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).substring(0,
+    //    sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).indexOf("@"));
+    var foldername = sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} });
     User.create({
         username: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
         email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
