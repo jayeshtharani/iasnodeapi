@@ -1,8 +1,8 @@
 const { body, validationResult } = require("express-validator");
 exports.forgotPasswordValidator = [
-    body("email")
-        .exists({ checkFalsy: true }).withMessage("Email is required")
-        .isEmail().withMessage("Provide valid email"),
+    body("username")
+        .exists({ checkFalsy: true }).withMessage("Username is required")
+        .isLength({ min: 5 }).withMessage("Username should be at least 5 characters"),
     body("newpassword")
         .exists({ checkFalsy: true }).withMessage("Password is required")
         .isLength({ min: 5 }).withMessage("Password should be at least 5 characters"),

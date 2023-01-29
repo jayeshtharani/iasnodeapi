@@ -104,7 +104,7 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
 exports.forgotpassword = (req, res) => {
     User.findOne({
         where: {
-            email: sanitizeHtml(req.body.email, { allowedTags: [], allowedAttributes: {} }),
+            username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
             isdeleted: false
         }
     }).then(user => {
