@@ -2,42 +2,64 @@ const db = require("../models");
 const ROLES = db.ROLES;
 const User = db.user;
 const Customer = db.customers;
+const SubCustomer = db.subcustomers;
 
 checkUserDuplicateEmail = (req, res, next) => {
     User.findOne({
         where: {
-            email: req.body.companyemail,
+            username: req.body.username,
             isdeleted: false
         }
     }).then(user => {
         if (user) {
-           return res.status(400).send({
-                data:null,
-                message: "Failed! User Email is already in use!"
+            return res.status(400).send({
+                data: null,
+                message: "Failed! User is already in use!"
             });
-            
+
         }
         else {
-           return next();
+            return next();
         }
     });
 };
 
-checkCustomerDuplicateEmail = (req, res, next) => {
+
+checkSubCustomerDuplicateEmail = (req, res, next) => {
+    SubCustomer.findOne({
+        where: {
+            email: req.body.email,
+            isdeleted: false,
+            customerid: req.body.customerid
+        }
+    }).then(user => {
+        if (user) {
+            return res.status(400).send({
+                data: null,
+                message: "Failed! Email is already in use!"
+            });
+        }
+        else {
+            return next();
+        }
+    });
+};
+
+checkCustomerDuplicateCompanyName = (req, res, next) => {
     Customer.findOne({
         where: {
-            companyemail: req.body.companyemail,
+            companyname: req.body.companyname,
             isdeleted: false
         }
     }).then(user => {
         if (user) {
-           return res.status(400).send({
+            return res.status(400).send({
                 data: null,
-                message: "Failed! Customer Email is already in use!"
-            });   
+                message: "Failed! Company Name is already in use!"
+            });
         }
         else {
-           return next();
+            return next();
         }
     });
 };
@@ -59,7 +81,8 @@ checkRolesExisted = (req, res, next) => {
 
 const verifySignUp = {
     checkUserDuplicateEmail: checkUserDuplicateEmail,
-    checkCustomerDuplicateEmail: checkCustomerDuplicateEmail,
+    checkSubCustomerDuplicateEmail: checkSubCustomerDuplicateEmail,
+    checkCustomerDuplicateCompanyName: checkCustomerDuplicateCompanyName,
     checkRolesExisted: checkRolesExisted
 };
 

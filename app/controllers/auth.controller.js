@@ -10,7 +10,7 @@ const send_email_message = require('../middleware/emailer');
 exports.signin = (req, res) => {
     User.findOne({
         where: {
-            email: sanitizeHtml(req.body.email, { allowedTags: [], allowedAttributes: {} }),
+            username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
             isdeleted: false
         }
     }).then(user => {
@@ -45,7 +45,6 @@ exports.signin = (req, res) => {
             data.push({
                 id: user.userid,
                 username: user.username,
-                email: user.email,
                 roles: authorities,
                 accessToken: token
             });
@@ -68,30 +67,29 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
     }
     User.create({
         username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
-        email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
         plaintextpassword: password,
         password: bcrypt.hashSync(password, 8)
     }).then(userResult => {
         userResult.setRoles([1]).then(roleResult => {
-            var isSendMail = parseInt(req.body.sendmail) || 0;
-            if (isSendMail === 1) {
-                var regmessage = "<p>";
-                regmessage += "Hi ";
-                regmessage += sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} });
-                regmessage += ",";
-                regmessage += "</p>";
+            //var isSendMail = parseInt(req.body.sendmail) || 0;
+            //if (isSendMail === 1) {
+            //    var regmessage = "<p>";
+            //    regmessage += "Hi ";
+            //    regmessage += sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} });
+            //    regmessage += ",";
+            //    regmessage += "</p>";
 
-                regmessage += "<p>A new admin account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
-                regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
-                regmessage += "<p>Password: " + password;
-                regmessage += "</p>";
-                regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
-                regmessage += "<p></p>";
-                regmessage += "Thank You, <br/>";
-                regmessage += "Team Indo Aerospace Solutions";
-                send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
-                    , "Welcome to Indo Aerospace Solutions", regmessage);
-            }
+            //    regmessage += "<p>A new admin account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
+            //    regmessage += "<p>Username: " + sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }) + "</p>";
+            //    regmessage += "<p>Password: " + password;
+            //    regmessage += "</p>";
+            //    regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
+            //    regmessage += "<p></p>";
+            //    regmessage += "Thank You, <br/>";
+            //    regmessage += "Team Indo Aerospace Solutions";
+            //    send_email_message.send_email_message(sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} })
+            //        , "Welcome to Indo Aerospace Solutions", regmessage);
+            //}
             res.status(200).send({
                 data: userResult.userid,
                 message: "Success"

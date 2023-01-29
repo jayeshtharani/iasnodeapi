@@ -2,12 +2,13 @@ const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
 const Customer = db.customers;
+const SubCustomer = db.subcustomers;
 var bcrypt = require("bcryptjs");
 const sanitizeHtml = require('sanitize-html');
 const formidable = require('formidable');
 const path = require('path');
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
-const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
+//const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
 const fs = require('fs');
 const os = require('os');
 var url = require('url');
@@ -83,92 +84,92 @@ const getFileNameMatching = function (dirpath, withfilename) {
             files_last_cahr_ints.push(arvalue);
         }
     }
-    if (files_last_cahr_ints.length===0) {
+    if (files_last_cahr_ints.length === 0) {
         return 0;
     }
     else {
         return Math.max(...files_last_cahr_ints);
     }
-    
+
 };
 
 
 
 //DONE
-exports.uploadprofilepic = (req, res) => {
-    try {
-        const form = new formidable.IncomingForm();
-        form.multiples = false;
-        form.maxFileSize = 5 * 1024 * 1024;
-        form.maxFiles = 1;
+//exports.uploadprofilepic = (req, res) => {
+//    try {
+//        const form = new formidable.IncomingForm();
+//        form.multiples = false;
+//        form.maxFileSize = 5 * 1024 * 1024;
+//        form.maxFiles = 1;
 
-        form.parse(req, (err, fields, files) => {
-            if (err) {
-                return res.status(400).send({ data: null, message: err });
-            }
-            var yourDate = new Date();
-            var epochTicks = 621355968000000000;
-            var ticksPerMillisecond = 10000;
-            var yourTicks = epochTicks + (yourDate.getTime() * ticksPerMillisecond);
+//        form.parse(req, (err, fields, files) => {
+//            if (err) {
+//                return res.status(400).send({ data: null, message: err });
+//            }
+//            var yourDate = new Date();
+//            var epochTicks = 621355968000000000;
+//            var ticksPerMillisecond = 10000;
+//            var yourTicks = epochTicks + (yourDate.getTime() * ticksPerMillisecond);
 
-            try {
-                if (!files.myfile.length) {
-                    Customer.findOne({
-                        where: {
-                            customerid: fields.customerid,
-                            isdeleted: false
-                        }
-                    }).then(custResult => {
+//            try {
+//                if (!files.myfile.length) {
+//                    Customer.findOne({
+//                        where: {
+//                            customerid: fields.customerid,
+//                            isdeleted: false
+//                        }
+//                    }).then(custResult => {
 
-                        if (!custResult) {
-                            return res.status(404).send({ data: null, message: "Customer not found" });
-                        }
+//                        if (!custResult) {
+//                            return res.status(404).send({ data: null, message: "Customer not found" });
+//                        }
 
-                        const file = files.myfile;
-                        const isValid = isFileValidProfilePic(file);
-                        if (!isValid) {
-                            return res.status(400).send({ data: null, message: "The file type is not a valid type", });
-                        }
+//                        const file = files.myfile;
+//                        const isValid = isFileValidProfilePic(file);
+//                        if (!isValid) {
+//                            return res.status(400).send({ data: null, message: "The file type is not a valid type", });
+//                        }
 
-                        var oldPath = file.filepath;
-                        var rawData = fs.readFileSync(oldPath);
-                        var newPathTemp = path.join(uploadProfilePicFolder, file.originalFilename);
-                        var originalfileNamewithoutextension = path.parse(newPathTemp).name;
-                        var originalfileNameextension = path.extname(newPathTemp);
-                        var newFilename = originalfileNamewithoutextension + "_" + yourTicks + originalfileNameextension;
-                        var newPath = path.join(uploadProfilePicFolder, newFilename);
+//                        var oldPath = file.filepath;
+//                        var rawData = fs.readFileSync(oldPath);
+//                        var newPathTemp = path.join(uploadProfilePicFolder, file.originalFilename);
+//                        var originalfileNamewithoutextension = path.parse(newPathTemp).name;
+//                        var originalfileNameextension = path.extname(newPathTemp);
+//                        var newFilename = originalfileNamewithoutextension + "_" + yourTicks + originalfileNameextension;
+//                        var newPath = path.join(uploadProfilePicFolder, newFilename);
 
-                        fs.writeFile(newPath, rawData, function (err) {
-                            if (err) {
-                                return res.status(400).send({ data: null, message: err });
-                            }
-                            Customer.update(
-                                {
-                                    profilepic: newFilename,
-                                },
-                                {
-                                    where: { customerid: custResult.customerid },
-                                }
-                            )
+//                        fs.writeFile(newPath, rawData, function (err) {
+//                            if (err) {
+//                                return res.status(400).send({ data: null, message: err });
+//                            }
+//                            Customer.update(
+//                                {
+//                                    profilepic: newFilename,
+//                                },
+//                                {
+//                                    where: { customerid: custResult.customerid },
+//                                }
+//                            )
 
-                            const ext = (newPath).split('.').filter(Boolean).slice(1).join('.');
-                            var bitmap = "data:image/" + ext;
-                            bitmap += ";base64," + fs.readFileSync(newPath, 'base64', 'utf-8');
-                            return res.status(200).send({ data: bitmap, message: "Success" });
-                        });
-                    });
-                }
-            }
-            catch (e) {
-                return res.status(500).send({ data: null, message: e.message + " Missing Parameters myfile and customerid" });
-            }
-        });
-    }
-    catch (e) {
-        return res.status(500).send({ data: null, message: e.message });
-    }
+//                            const ext = (newPath).split('.').filter(Boolean).slice(1).join('.');
+//                            var bitmap = "data:image/" + ext;
+//                            bitmap += ";base64," + fs.readFileSync(newPath, 'base64', 'utf-8');
+//                            return res.status(200).send({ data: bitmap, message: "Success" });
+//                        });
+//                    });
+//                }
+//            }
+//            catch (e) {
+//                return res.status(500).send({ data: null, message: e.message + " Missing Parameters myfile and customerid" });
+//            }
+//        });
+//    }
+//    catch (e) {
+//        return res.status(500).send({ data: null, message: e.message });
+//    }
 
-};
+//};
 
 
 
@@ -299,10 +300,9 @@ exports.create = (req, res) => {
 
     //var foldername = sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).substring(0,
     //    sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).indexOf("@"));
-    var foldername = sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} });
+    var foldername = sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} });
     User.create({
-        username: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
-        email: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
+        username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
         plaintextpassword: password,
         password: bcrypt.hashSync(password, 8)
     }).then(userResult => {
@@ -310,36 +310,36 @@ exports.create = (req, res) => {
             Customer.create({
                 companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
                 companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }) || '',
-                companyemail: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
+                //companyemail: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
                 companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }) || '',
-                cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }),
-                cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }) || '',
-                cpgenderid: req.body.cpgenderid || 1,
-                cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }) || '',
-                cpdob: req.body.cpdob || dateTime.format(cdate, "YYYY-MM-DD"),
-                cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }) || '',
+                //cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }),
+                //cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }) || '',
+                //cpgenderid: req.body.cpgenderid || 1,
+                //cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }) || '',
+                //cpdob: req.body.cpdob || dateTime.format(cdate, "YYYY-MM-DD"),
+                //cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }) || '',
                 userid: userResult.userid,
-                profilepic: '',
+                //profilepic: '',
                 rootfoldername: foldername
             }).then(custResult => {
-                var isSendMail = parseInt(req.body.sendmail) || 0;
-                if (isSendMail === 1) {
-                    var regmessage = "<p>";
-                    regmessage += "Hi ";
-                    regmessage += sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} });
-                    regmessage += ",";
-                    regmessage += "</p>";
-                    regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
-                    regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
-                    regmessage += "<p>Password: " + password;
-                    regmessage += "</p>";
-                    regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
-                    regmessage += "<p></p>";
-                    regmessage += "Thank You, <br/>";
-                    regmessage += "Team Indo Aerospace Solutions";
-                    send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
-                        , "Welcome to Indo Aerospace Solutions", regmessage);
-                }
+                //var isSendMail = parseInt(req.body.sendmail) || 0;
+                //if (isSendMail === 1) {
+                //    var regmessage = "<p>";
+                //    regmessage += "Hi ";
+                //    regmessage += sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} });
+                //    regmessage += ",";
+                //    regmessage += "</p>";
+                //    regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
+                //    regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
+                //    regmessage += "<p>Password: " + password;
+                //    regmessage += "</p>";
+                //    regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
+                //    regmessage += "<p></p>";
+                //    regmessage += "Thank You, <br/>";
+                //    regmessage += "Team Indo Aerospace Solutions";
+                //    send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
+                //        , "Welcome to Indo Aerospace Solutions", regmessage);
+                //}
 
                 var custFolderPath = path.join(uploadFilesFolder, foldername);
                 fs.access(custFolderPath, (error) => {
@@ -363,6 +363,34 @@ exports.create = (req, res) => {
     });
 };
 
+
+
+exports.createsubcustomer = (req, res) => {
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+        SubCustomer.create({
+            firstname: sanitizeHtml(req.body.firstname, { allowedTags: [], allowedAttributes: {} }),
+            lastname: sanitizeHtml(req.body.lastname, { allowedTags: [], allowedAttributes: {} }) || '',
+            email: sanitizeHtml(req.body.email, { allowedTags: [], allowedAttributes: {} }),
+            phone: sanitizeHtml(req.body.phone, { allowedTags: [], allowedAttributes: {} }) || '',
+            designation: sanitizeHtml(req.body.designation, { allowedTags: [], allowedAttributes: {} }),
+            customerid: user.customerid,
+        }).then(subcustres => {
+            return res.status(200).send({ data: subcustres.subcustomerid, message: "Sub Customer created successfully" });
+        });
+
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+};
+
 //DONE
 exports.edit = (req, res) => {
     var cdate = new Date();
@@ -376,26 +404,17 @@ exports.edit = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "Customer not found" });
         }
-        User.update(
-            {
-                username: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
-            },
-            {
-                where: { userid: sanitizeHtml(user.userid, { allowedTags: [], allowedAttributes: {} }) },
-            }
-        )
-    }).then(ur => {
         Customer.update(
             {
-                companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
+                //companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
                 companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }) || '',
                 companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }) || '',
-                cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) || '',
-                cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }) || '',
-                cpgenderid: req.body.cpgenderid || 1,
-                cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }) || '',
-                cpdob: req.body.cpdob || dateTime.format(cdate, "YYYY-MM-DD"),
-                cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }),
+                //cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) || '',
+                //cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }) || '',
+                //cpgenderid: req.body.cpgenderid || 1,
+                //cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }) || '',
+                //cpdob: req.body.cpdob || dateTime.format(cdate, "YYYY-MM-DD"),
+                //cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }),
             },
             {
                 where: { customerid: customerid },
@@ -403,11 +422,12 @@ exports.edit = (req, res) => {
         ).then(cr => {
             res.status(200).send({ data: "Customer Updated", message: "Success" });
 
+        }).catch(err => {
+            res.status(500).send({ data: null, message: err.message });
         });
-    }).catch(err => {
-        res.status(500).send({ data: null, message: err.message });
     });
 };
+
 
 //DONE
 exports.getfolders = (req, res) => {
@@ -484,18 +504,18 @@ exports.getcustomer = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "Customer not found" });
         }
-        var profilepic = "";
-        if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + pjoiner + user.profilepic)) {
-                const ext = (uploadProfilePicFolder + pjoiner + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
-                var bitmap = "data:image/" + ext;
-                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + user.profilepic, 'base64', 'utf-8');
-                profilepic = bitmap;
-            }
-            else {
-                profilepic = "";
-            }
-        }
+        //var profilepic = "";
+        //if (user.profilepic) {
+        //    if (fs.existsSync(uploadProfilePicFolder + pjoiner + user.profilepic)) {
+        //        const ext = (uploadProfilePicFolder + pjoiner + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+        //        var bitmap = "data:image/" + ext;
+        //        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + user.profilepic, 'base64', 'utf-8');
+        //        profilepic = bitmap;
+        //    }
+        //    else {
+        //        profilepic = "";
+        //    }
+        //}
 
         var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
         var alldirs = [];
@@ -518,13 +538,12 @@ exports.getcustomer = (req, res) => {
         data.push({
             "RootFolder": user.rootfoldername,
             "CompanyName": user.companyname,
-            "CompanyEmail": user.companyemail,
-            "FirstName": user.cpfirstname,
-            "LastName": user.cplastname,
+            "CompanyPhone": user.companyphone,
+            "CompanyAddress": user.companyaddress,
             "CustomerId": user.customerid,
             "TotalDocuments": allfiles_r.length,
             "TotalFolders": alldirs_r.length,
-            "ProfilePic": profilepic,
+            //"ProfilePic": profilepic,
             "Folders": alldirs,
             "Files": allfiles,
         });
@@ -540,7 +559,7 @@ exports.getcustomer = (req, res) => {
 //done
 exports.getcustomerprofile = (req, res) => {
     const { customerid } = req.params;
-
+    var t_subcustomers = [];
     Customer.findOne({
         where: {
             customerid: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
@@ -550,44 +569,118 @@ exports.getcustomerprofile = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "Customer not found" });
         }
-        var profilepic = "";
-        if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
-                const ext = (uploadProfilePicFolder + "/" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
-                var bitmap = "data:image/" + ext;
-                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + user.profilepic, 'base64', 'utf-8');
-                profilepic = bitmap;
+        //var profilepic = "";
+        //if (user.profilepic) {
+        //    if (fs.existsSync(uploadProfilePicFolder + "/" + user.profilepic)) {
+        //        const ext = (uploadProfilePicFolder + "/" + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+        //        var bitmap = "data:image/" + ext;
+        //        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + "/" + user.profilepic, 'base64', 'utf-8');
+        //        profilepic = bitmap;
+        //    }
+        //    else {
+        //        profilepic = "";
+        //    }
+        //}
+        SubCustomer.findAll({
+            attributes: ['subcustomerid', 'firstname', 'lastname', 'email', 'phone', 'designation', 'isactive'],
+            raw: true,
+            where: {
+                customerid: user.customerid,
+                isdeleted: false
             }
-            else {
-                profilepic = "";
-            }
-        }
-        var data = [];
-        data.push({
-            "CompanyName": user.companyname,
-            "CompanyAddress": user.companyaddress,
-            "CompanyPhone": user.companyphone,
-            "CompanyEmail": user.companyemail,
-            "FirstName": user.cpfirstname,
-            "LastName": user.cplastname,
-            "FirstName": user.cpfirstname,
-            "LastName": user.cplastname,
-            "GenderId": user.cpgenderid,
-            "Email": user.cpemail,
-            "DOB": user.cpdob,
-            "Notes": user.cpnotes,
-            "CustomerId": user.customerid,
-            "ProfilePic": profilepic
-        });
-        res.status(200).send({
-            message: "Success",
-            data: data
+        }).then(subc => {
+            subc.forEach(elem => {
+                console.log(elem);
+                t_subcustomers.push({
+                    "FirstName": elem.firstname,
+                    "LastName": elem.lastname,
+                    "Email": elem.email,
+                    "Phone": elem.phone,
+                    "Designation": elem.designation,
+                    "IsActive": elem.isactive,
+                });
+            });
+
+            var data = [];
+            data.push({
+                "CompanyName": user.companyname,
+                "CompanyAddress": user.companyaddress,
+                "CompanyPhone": user.companyphone,
+                "SubCustomers": t_subcustomers,
+                "CustomerId": user.customerid,
+                //"ProfilePic": profilepic
+            });
+            res.status(200).send({
+                message: "Success",
+                data: data
+            });
+
         });
 
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
     });
 };
+
+
+exports.getcustomersubcustomers = (req, res) => {
+    const { customerid } = req.params;
+    var t_subcustomers = [];
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer not found" });
+        }
+        
+        SubCustomer.findAll({
+            attributes: ['subcustomerid', 'firstname', 'lastname', 'email', 'phone', 'designation', 'isactive'],
+            raw: true,
+            where: {
+                customerid: user.customerid,
+                isdeleted: false
+            }
+        }).then(subc => {
+            subc.forEach(elem => {
+                console.log(elem);
+                t_subcustomers.push({
+                    "FirstName": elem.firstname,
+                    "LastName": elem.lastname,
+                    "Email": elem.email,
+                    "Phone": elem.phone,
+                    "Designation": elem.designation,
+                    "IsActive": elem.isactive,
+                });
+            });
+
+            var data = [];
+            data.push({
+                "CompanyName": user.companyname,
+                "CompanyAddress": user.companyaddress,
+                "CompanyPhone": user.companyphone,
+                "SubCustomers": t_subcustomers,
+                "CustomerId": user.customerid,
+            });
+            res.status(200).send({
+                message: "Success",
+                data: data
+            });
+
+        });
+
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+};
+
+
+
+
+
+
 
 //done
 exports.dashboard = (req, res) => {
@@ -611,18 +704,18 @@ exports.dashboard = (req, res) => {
         if (!user.isactive) {
             return res.status(404).send({ data: null, message: "Customer Not active." });
         }
-        var profilepic = "";
-        if (user.profilepic) {
-            if (fs.existsSync(uploadProfilePicFolder + pjoiner + user.profilepic)) {
-                const ext = (uploadProfilePicFolder + pjoiner + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
-                var bitmap = "data:image/" + ext;
-                bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + user.profilepic, 'base64', 'utf-8');
-                profilepic = bitmap;
-            }
-            else {
-                profilepic = "";
-            }
-        }
+        //var profilepic = "";
+        //if (user.profilepic) {
+        //    if (fs.existsSync(uploadProfilePicFolder + pjoiner + user.profilepic)) {
+        //        const ext = (uploadProfilePicFolder + pjoiner + user.profilepic).split('.').filter(Boolean).slice(1).join('.');
+        //        var bitmap = "data:image/" + ext;
+        //        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + user.profilepic, 'base64', 'utf-8');
+        //        profilepic = bitmap;
+        //    }
+        //    else {
+        //        profilepic = "";
+        //    }
+        //}
         var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
         var alldirs = [];
         var allfiles = [];
@@ -643,13 +736,13 @@ exports.dashboard = (req, res) => {
         data.push({
             "RootFolder": user.rootfoldername,
             "CompanyName": user.companyname,
-            "CompanyEmail": user.companyemail,
-            "FirstName": user.cpfirstname,
-            "LastName": user.cplastname,
+            //"CompanyEmail": user.companyemail,
+            //"FirstName": user.cpfirstname,
+            //"LastName": user.cplastname,
             "CustomerId": user.customerid,
             "TotalDocuments": allfiles_r.length,
             "TotalFolders": alldirs_r.length,
-            "ProfilePic": profilepic,
+            //"ProfilePic": profilepic,
             "Folders": alldirs,
             "Files": allfiles,
         });

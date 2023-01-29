@@ -2,9 +2,6 @@ var nodemailer = require("nodemailer");
 const db = require("../models");
 const AppSettings = db.appsettings;
 
-
-
-
 exports.send_email_message = (send_to, subject, message) => {
     var smtpport = '', smtpkey = '', smtphost = '', smtpuser = '';
     AppSettings.findAll({ attributes: ['appkey', 'appvalue'], }).then(res => {

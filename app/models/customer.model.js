@@ -1,4 +1,3 @@
-
 module.exports = (sequelize, Sequelize) => {
     const Customer = sequelize.define("customers", {
         customerid: {
@@ -8,49 +7,16 @@ module.exports = (sequelize, Sequelize) => {
         },
         companyname: {
             type: Sequelize.STRING,
-            allowNull: false
+            allowNull: false,
+            validate: { len: 6 },
         },
         companyphone: {
-            type: Sequelize.STRING
-        },
-        companyemail: {
-            type: Sequelize.STRING,
-            allowNull: false,
-            unique: true,
-            validate: {
-                isEmail: true
-            }
-        },
-        companyaddress: {
-            type: Sequelize.STRING
-        },
-        cpfirstname: {
-            type: Sequelize.STRING
-            //,allowNull: false
-        },
-        cplastname: {
-            type: Sequelize.STRING,
-            //allowNull: false
-        },
-        cpgenderid: {
-            type: Sequelize.TINYINT,
-            allowNull: true,
-            defaultValue: '1'
-        },
-        cpemail: {
             type: Sequelize.STRING,
             allowNull: true
         },
-        cpphone: {
-            type: Sequelize.STRING
-        },
-        cpdob: {
-            type: Sequelize.DATEONLY,
-            allowNull: true,
-            defaultValue: Sequelize.NOW
-        },
-        cpnotes: {
-            type: Sequelize.STRING
+        companyaddress: {
+            type: Sequelize.STRING,
+            allowNull: true
         },
         isactive: {
             type: Sequelize.BOOLEAN,
@@ -60,11 +26,6 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.BOOLEAN,
             defaultValue: false
         },
-        profilepic: {
-            type: Sequelize.STRING,
-            defaultValue: '',
-            allowNull: true
-        },
         userid: {
             type: Sequelize.UUID,
             references: {
@@ -72,7 +33,6 @@ module.exports = (sequelize, Sequelize) => {
                 key: 'userid',
             },
             allowNull: false,
-            unique: true,
         },
         rootfoldername: {
             type: Sequelize.STRING

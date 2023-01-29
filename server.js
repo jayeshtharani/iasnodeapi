@@ -47,12 +47,12 @@ logger.add(new winston.transports.Console({
 const db = require("./app/models");
 const Role = db.role;
 const AppSettings = db.appsettings;
-db.sequelize.sync();
+//db.sequelize.sync();
 
-//db.sequelize.sync({ force: true }).then(() => {
-//   console.log('Drop and Resync Database with { force: true }');
-//   initial();
-// });
+db.sequelize.sync({ force: true }).then(() => {
+   console.log('Drop and Resync Database with { force: true }');
+   initial();
+ });
 require('./app/routes/auth.routes')(app);
 require('./app/routes/customer.routes')(app);
 require('./app/routes/admin.routes')(app);
@@ -91,6 +91,6 @@ function initial() {
 
     AppSettings.create({
         appkey: "passsecretkey",
-        appvalue: "app@8t7438*(%^(E)E(_)*WEFDXRTHAdjkchsdjcvh"
+        appvalue: ""
     });
 }

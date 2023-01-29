@@ -2,14 +2,16 @@ const { authJwt } = require("../middleware");
 const { verifySignUp } = require("../middleware");
 const controller = require("../controllers/customer.controller");
 const { createCustomerValidator } = require('../validators/createcustomer.validator');
+const { createSubCustomerValidator } = require('../validators/createsubcustomer.validator');
 const { editCustomerValidator } = require('../validators/editcustomer.validator');
 const { createFolderValidator } = require('../validators/createfolder.validator');
 const { getFolderFilesValidator } = require('../validators/getfolderfiles.validator');
 
 module.exports = function (app) {
 
-    app.post("/api/customer/create", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkUserDuplicateEmail,
-    verifySignUp.checkCustomerDuplicateEmail], createCustomerValidator, controller.create);
+    app.post("/api/customer/create", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkUserDuplicateEmail, verifySignUp.checkCustomerDuplicateCompanyName], createCustomerValidator, controller.create);
+
+    app.post("/api/customer/createsubcustomer", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkSubCustomerDuplicateEmail], createSubCustomerValidator, controller.createsubcustomer);
 
     app.put("/api/customer/edit/:customerid", [authJwt.verifyToken, authJwt.isAdmin], editCustomerValidator, controller.edit);
 
@@ -19,7 +21,9 @@ module.exports = function (app) {
 
     app.get('/api/customer/profile/:customerid', [authJwt.verifyToken, authJwt.isAdmin], controller.getcustomerprofile);
 
-    app.post("/api/customer/uploadprofilepic", [authJwt.verifyToken, authJwt.isAdmin], controller.uploadprofilepic);
+    app.get('/api/customer/subcustomers/:customerid', [authJwt.verifyToken, authJwt.isAdmin], controller.getcustomersubcustomers);
+
+    //app.post("/api/customer/uploadprofilepic", [authJwt.verifyToken, authJwt.isAdmin], controller.uploadprofilepic);
 
     //Folder logic needs to be commented 8 Jan 2023
     app.post("/api/customer/createfolder", [authJwt.verifyToken, authJwt.isAdmin], createFolderValidator, controller.createfolder);

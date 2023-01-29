@@ -10,7 +10,7 @@ var url = require('url');
 const uploadFilesFolder = path.join(__dirname, "../uploads", "files");
 const Op = db.Sequelize.Op;
 var bcrypt = require("bcryptjs");
-const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
+//const uploadProfilePicFolder = path.join(__dirname, "../uploads", "profilepic");
 const dirTree = require("directory-tree");
 
 
@@ -118,7 +118,7 @@ exports.dashboard = (req, res) => {
 
     if (searchname.length > 0) {
         Customer.findAndCountAll({
-            attributes: ['customerid', 'companyname', 'companyemail', 'isactive', 'userid', 'profilepic', 'rootfoldername'],
+            attributes: ['customerid', 'companyname', 'companyphone', 'isactive', 'userid', 'rootfoldername'],
             offset: q_offset,//page number starts from 0
             limit: q_limit,
             where: {
@@ -128,7 +128,7 @@ exports.dashboard = (req, res) => {
                         companyname: { [Op.substring]: searchname },
                     },
                     {
-                        companyemail: { [Op.substring]: searchname },
+                        companyphone: { [Op.substring]: searchname },
                     },
                 ]
             },
@@ -143,19 +143,19 @@ exports.dashboard = (req, res) => {
             user.rows.forEach(element => {
                 var custFolderPath = path.join(uploadFilesFolder, element.rootfoldername);
                 var allfiles_r = getAllDirFiles(custFolderPath);
-                var profilepic = "";
-                if (element.profilepic) {
-                    if (fs.existsSync(uploadProfilePicFolder + pjoiner + element.profilepic)) {
+                //var profilepic = "";
+                //if (element.profilepic) {
+                //    if (fs.existsSync(uploadProfilePicFolder + pjoiner + element.profilepic)) {
 
-                        const ext = (uploadProfilePicFolder + pjoiner + element.profilepic).split('.').filter(Boolean).slice(1).join('.');
-                        var bitmap = "data:image/" + ext;
-                        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + element.profilepic, 'base64', 'utf-8');
-                        profilepic = bitmap;
-                    }
-                    else {
-                        profilepic = "";
-                    }
-                }
+                //        const ext = (uploadProfilePicFolder + pjoiner + element.profilepic).split('.').filter(Boolean).slice(1).join('.');
+                //        var bitmap = "data:image/" + ext;
+                //        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + element.profilepic, 'base64', 'utf-8');
+                //        profilepic = bitmap;
+                //    }
+                //    else {
+                //        profilepic = "";
+                //    }
+                //}
 
                 var cid_uid = t_users.find(c => c.userid === element.userid);
                 data2.push({
@@ -166,7 +166,7 @@ exports.dashboard = (req, res) => {
                     "TotalDocuments": allfiles_r.length,
                     "IsActive": element.isactive,
                     "PlainTextPassword": cid_uid.plaintextpassword,
-                    "ProfilePic": profilepic
+                    //"ProfilePic": profilepic
                 });
             });
 
@@ -192,7 +192,7 @@ exports.dashboard = (req, res) => {
 
     else {
         Customer.findAndCountAll({
-            attributes: ['customerid', 'companyname', 'companyemail', 'isactive', 'userid', 'profilepic', 'rootfoldername'],
+            attributes: ['customerid', 'companyname', 'companyphone', 'isactive', 'userid', 'rootfoldername'],
             offset: q_offset,//page number starts from 0
             limit: q_limit,
             where: {
@@ -210,19 +210,19 @@ exports.dashboard = (req, res) => {
                 var custFolderPath = path.join(uploadFilesFolder, element.rootfoldername);
                 var allfiles_r = getAllDirFiles(custFolderPath);
                 var cid_uid = t_users.find(c => c.userid === element.userid);
-                var profilepic = "";
-                if (element.profilepic) {
-                    if (fs.existsSync(uploadProfilePicFolder + pjoiner + element.profilepic)) {
+                //var profilepic = "";
+                //if (element.profilepic) {
+                //    if (fs.existsSync(uploadProfilePicFolder + pjoiner + element.profilepic)) {
 
-                        const ext = (uploadProfilePicFolder + pjoiner + element.profilepic).split('.').filter(Boolean).slice(1).join('.');
-                        var bitmap = "data:image/" + ext;
-                        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + element.profilepic, 'base64', 'utf-8');
-                        profilepic = bitmap;
-                    }
-                    else {
-                        profilepic = "";
-                    }
-                }
+                //        const ext = (uploadProfilePicFolder + pjoiner + element.profilepic).split('.').filter(Boolean).slice(1).join('.');
+                //        var bitmap = "data:image/" + ext;
+                //        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + element.profilepic, 'base64', 'utf-8');
+                //        profilepic = bitmap;
+                //    }
+                //    else {
+                //        profilepic = "";
+                //    }
+                //}
                 data2.push({
                     "CompanyName": element.companyname,
                     "CompanyEmail": element.companyemail,
@@ -231,7 +231,7 @@ exports.dashboard = (req, res) => {
                     "TotalDocuments": allfiles_r.length,
                     "IsActive": element.isactive,
                     "PlainTextPassword": cid_uid.plaintextpassword,
-                    "ProfilePic": profilepic
+                    //"ProfilePic": profilepic
                 });
             });
 
