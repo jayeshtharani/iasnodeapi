@@ -106,7 +106,7 @@ exports.dashboard = (req, res) => {
 
     //});
 
-    db.sequelize.query('SELECT users.userid,users.plaintextpassword FROM users where users.isdeleted=false',
+    db.sequelize.query('SELECT users.userid,users.username,users.plaintextpassword FROM users where users.isdeleted=false',
         {
             raw: false,
             type: db.sequelize.QueryTypes.SELECT,
@@ -160,7 +160,7 @@ exports.dashboard = (req, res) => {
                 var cid_uid = t_users.find(c => c.userid === element.userid);
                 data2.push({
                     "CompanyName": element.companyname,
-                    "CompanyEmail": element.companyemail,
+                    "UserName": cid_uid.username,
                     "UserId": element.userid,
                     "CustomerId": element.customerid,
                     "TotalDocuments": allfiles_r.length,
@@ -225,7 +225,7 @@ exports.dashboard = (req, res) => {
                 //}
                 data2.push({
                     "CompanyName": element.companyname,
-                    "CompanyEmail": element.companyemail,
+                    "UserName": cid_uid.username,
                     "UserId": element.userid,
                     "CustomerId": element.customerid,
                     "TotalDocuments": allfiles_r.length,
