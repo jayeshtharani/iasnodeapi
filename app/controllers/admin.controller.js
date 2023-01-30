@@ -539,7 +539,7 @@ exports.removeuser = (req, res) => {
             ).then((cusupdres) => {
                 var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
                 fs.rmdirSync(custFolderPath, { recursive: true });
-                return res.status(200).send({ data: user.companyemail + " User Removed", message: "Success" });
+                return res.status(200).send({ data: user.username + " User Removed", message: "Success" });
             });
         });
     }).catch(err => {

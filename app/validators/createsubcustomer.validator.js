@@ -5,7 +5,7 @@ exports.createSubCustomerValidator = [
         .exists({ checkFalsy: true }).withMessage("Customerid is required")
         .isLength({ min: 36 }).withMessage("Inavlid Customerid"),
 
-    body("firstname").exists({ checkFalsy: true })
+    body("firstname").exists({ checkFalsy: true }).withMessage("First Name is required")
         .isString().withMessage("First Name should be string")
         .isLength({ min: 3 }).withMessage("First Name should be at least 3 characters"),
 
@@ -16,7 +16,7 @@ exports.createSubCustomerValidator = [
     body("phone").optional({ nullable: true, checkFalsy: true })
         .isLength({ min: 10 }).withMessage("Phone should be at least 10 characters"),
 
-    body("email").exists({ checkFalsy: true })
+    body("email").exists({ checkFalsy: true }).withMessage("Email is required")
         .isEmail().withMessage("Provide Valid Email"),
 
     body("designation").optional({ nullable: true, checkFalsy: true })

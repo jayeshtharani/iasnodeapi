@@ -406,15 +406,8 @@ exports.edit = (req, res) => {
         }
         Customer.update(
             {
-                //companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
                 companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }) || '',
                 companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }) || '',
-                //cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }) || '',
-                //cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }) || '',
-                //cpgenderid: req.body.cpgenderid || 1,
-                //cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }) || '',
-                //cpdob: req.body.cpdob || dateTime.format(cdate, "YYYY-MM-DD"),
-                //cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }),
             },
             {
                 where: { customerid: customerid },
