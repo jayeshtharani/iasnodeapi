@@ -3,11 +3,12 @@ const ROLES = db.ROLES;
 const User = db.user;
 const Customer = db.customers;
 const SubCustomer = db.subcustomers;
+const sanitizeHtml = require('sanitize-html');
 
 checkUserDuplicateEmail = (req, res, next) => {
     User.findOne({
         where: {
-            username: req.body.username,
+            username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
             isdeleted: false
         }
     }).then(user => {
@@ -24,11 +25,10 @@ checkUserDuplicateEmail = (req, res, next) => {
     });
 };
 
-
 checkSubCustomerDuplicateEmail = (req, res, next) => {
     SubCustomer.findOne({
         where: {
-            email: req.body.email,
+            email: sanitizeHtml(req.body.email, { allowedTags: [], allowedAttributes: {} }),
             isdeleted: false,
             customerid: req.body.customerid
         }
@@ -48,7 +48,7 @@ checkSubCustomerDuplicateEmail = (req, res, next) => {
 checkCustomerDuplicateCompanyName = (req, res, next) => {
     Customer.findOne({
         where: {
-            companyname: req.body.companyname,
+            companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
             isdeleted: false
         }
     }).then(user => {

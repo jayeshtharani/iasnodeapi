@@ -24,7 +24,6 @@ const isFileValidProfilePic = (file) => {
     }
     return true;
 };
-
 const isFileValid = (file) => {
     const type = path.extname(file.originalFilename);
     const validTypes = [".pdf", ".pdfx", ".doc", ".docx", ".ppt", ".pptx", ".jpeg", ".jpg", ".png", ".xls", ".xlsx"];
@@ -33,7 +32,6 @@ const isFileValid = (file) => {
     }
     return true;
 };
-
 const getAllDirFiles = function (dirPath, arrayOfFiles) {
     var pjoiner;
     if (process.platform === "win32") {
@@ -53,10 +51,6 @@ const getAllDirFiles = function (dirPath, arrayOfFiles) {
     });
     return arrayOfFiles;
 };
-
-
-
-
 const getAllDir = function (dirpath) {
     var alldirs = [];
     var ctree = dirTree(dirpath, null, null, (item, path, stats) => {
@@ -64,8 +58,6 @@ const getAllDir = function (dirpath) {
     });
     return alldirs;
 };
-
-
 const getFileNameMatching = function (dirpath, withfilename) {
     var allfilesindirs = getAllDirFiles(dirpath);
     var files_last_cahr = [];
@@ -95,85 +87,6 @@ const getFileNameMatching = function (dirpath, withfilename) {
 
 
 
-//DONE
-//exports.uploadprofilepic = (req, res) => {
-//    try {
-//        const form = new formidable.IncomingForm();
-//        form.multiples = false;
-//        form.maxFileSize = 5 * 1024 * 1024;
-//        form.maxFiles = 1;
-
-//        form.parse(req, (err, fields, files) => {
-//            if (err) {
-//                return res.status(400).send({ data: null, message: err });
-//            }
-//            var yourDate = new Date();
-//            var epochTicks = 621355968000000000;
-//            var ticksPerMillisecond = 10000;
-//            var yourTicks = epochTicks + (yourDate.getTime() * ticksPerMillisecond);
-
-//            try {
-//                if (!files.myfile.length) {
-//                    Customer.findOne({
-//                        where: {
-//                            customerid: fields.customerid,
-//                            isdeleted: false
-//                        }
-//                    }).then(custResult => {
-
-//                        if (!custResult) {
-//                            return res.status(404).send({ data: null, message: "Customer not found" });
-//                        }
-
-//                        const file = files.myfile;
-//                        const isValid = isFileValidProfilePic(file);
-//                        if (!isValid) {
-//                            return res.status(400).send({ data: null, message: "The file type is not a valid type", });
-//                        }
-
-//                        var oldPath = file.filepath;
-//                        var rawData = fs.readFileSync(oldPath);
-//                        var newPathTemp = path.join(uploadProfilePicFolder, file.originalFilename);
-//                        var originalfileNamewithoutextension = path.parse(newPathTemp).name;
-//                        var originalfileNameextension = path.extname(newPathTemp);
-//                        var newFilename = originalfileNamewithoutextension + "_" + yourTicks + originalfileNameextension;
-//                        var newPath = path.join(uploadProfilePicFolder, newFilename);
-
-//                        fs.writeFile(newPath, rawData, function (err) {
-//                            if (err) {
-//                                return res.status(400).send({ data: null, message: err });
-//                            }
-//                            Customer.update(
-//                                {
-//                                    profilepic: newFilename,
-//                                },
-//                                {
-//                                    where: { customerid: custResult.customerid },
-//                                }
-//                            )
-
-//                            const ext = (newPath).split('.').filter(Boolean).slice(1).join('.');
-//                            var bitmap = "data:image/" + ext;
-//                            bitmap += ";base64," + fs.readFileSync(newPath, 'base64', 'utf-8');
-//                            return res.status(200).send({ data: bitmap, message: "Success" });
-//                        });
-//                    });
-//                }
-//            }
-//            catch (e) {
-//                return res.status(500).send({ data: null, message: e.message + " Missing Parameters myfile and customerid" });
-//            }
-//        });
-//    }
-//    catch (e) {
-//        return res.status(500).send({ data: null, message: e.message });
-//    }
-
-//};
-
-
-
-//DONE
 exports.createfile = (req, res) => {
     try {
         const form = new formidable.IncomingForm();
@@ -185,10 +98,6 @@ exports.createfile = (req, res) => {
             if (err) {
                 return res.status(400).send({ data: null, message: err });
             }
-            //var yourDate = new Date();
-            //var epochTicks = 621355968000000000;
-            //var ticksPerMillisecond = 10000;
-            //var yourTicks = epochTicks + (yourDate.getTime() * ticksPerMillisecond);
 
             try {
                 if (!files.myfile.length) {
@@ -297,73 +206,104 @@ exports.create = (req, res) => {
     for (var i = 0, n = charset.length; i < length; ++i) {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
+    let replaceAllSWH = sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }).replace(/\.+/g, "").replace(/\,+/g, "").replace(/'+/g, "").replace(/"+/g, "").replace(/&+/g, "")
+        .replace(/pvt/ig, "")
+        .replace(/ltd/ig, "")
+        .replace(/llc/ig, "")
+        .replace(/llp/ig, "")
+        .replace(/inc/ig, "")
+        .replace(/private/ig, "")
+        .replace(/limited/ig, "")
+        .replace(/corporation/ig, "")
+        .replace(/corp/ig, "").trim()
+        .replace(/\s+/g, "_").toLowerCase();
 
-    //var foldername = sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).substring(0,
-    //    sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }).indexOf("@"));
-    var foldername = sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} });
-    User.create({
-        username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
-        plaintextpassword: password,
-        password: bcrypt.hashSync(password, 8)
-    }).then(userResult => {
-        userResult.setRoles([2]).then(roleResult => {
-            Customer.create({
-                companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
-                companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }) || '',
-                //companyemail: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
-                companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }) || '',
-                //cpfirstname: sanitizeHtml(req.body.cpfirstname, { allowedTags: [], allowedAttributes: {} }),
-                //cplastname: sanitizeHtml(req.body.cplastname, { allowedTags: [], allowedAttributes: {} }) || '',
-                //cpgenderid: req.body.cpgenderid || 1,
-                //cpemail: sanitizeHtml(req.body.cpemail, { allowedTags: [], allowedAttributes: {} }) || '',
-                //cpdob: req.body.cpdob || dateTime.format(cdate, "YYYY-MM-DD"),
-                //cpnotes: sanitizeHtml(req.body.cpnotes, { allowedTags: [], allowedAttributes: {} }) || '',
-                userid: userResult.userid,
-                //profilepic: '',
-                rootfoldername: foldername
-            }).then(custResult => {
-                //var isSendMail = parseInt(req.body.sendmail) || 0;
-                //if (isSendMail === 1) {
-                //    var regmessage = "<p>";
-                //    regmessage += "Hi ";
-                //    regmessage += sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} });
-                //    regmessage += ",";
-                //    regmessage += "</p>";
-                //    regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
-                //    regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
-                //    regmessage += "<p>Password: " + password;
-                //    regmessage += "</p>";
-                //    regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
-                //    regmessage += "<p></p>";
-                //    regmessage += "Thank You, <br/>";
-                //    regmessage += "Team Indo Aerospace Solutions";
-                //    send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
-                //        , "Welcome to Indo Aerospace Solutions", regmessage);
-                //}
+    const numberstoappend = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+        "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60"];
+    var companyexisted = [];
+    db.sequelize.query('SELECT users.username FROM users where users.isdeleted=false',
+        {
+            raw: false,
+            type: db.sequelize.QueryTypes.SELECT,
+        }
+    ).then(function (response) {
+        companyexisted = response;
+        const companyexisted_lowercased = companyexisted.map(item => item.username = item.username.toLowerCase());
+        var replaceAllSWH_R = '';
+        var c_index = 0;
+        var isexisted = companyexisted_lowercased.indexOf(replaceAllSWH) !== -1;
+        if (isexisted) {
+            for (var i = 0; i < numberstoappend.length; i++) {
+                replaceAllSWH_R = replaceAllSWH + "_" + numberstoappend[c_index];
+                c_index++;
+                if (companyexisted_lowercased.indexOf(replaceAllSWH_R) !== -1) {
+                    replaceAllSWH_R = replaceAllSWH + "_" + numberstoappend[c_index];
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        else {
+            replaceAllSWH_R = replaceAllSWH;
+        }
+        var foldername = replaceAllSWH_R.toLowerCase();// sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} });
+        User.create({
+            username: replaceAllSWH_R.toLowerCase(),//sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
+            plaintextpassword: password,
+            password: bcrypt.hashSync(password, 8)
+        }).then(userResult => {
+            userResult.setRoles([2]).then(roleResult => {
+                Customer.create({
+                    companyname: sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} }),
+                    companyphone: sanitizeHtml(req.body.companyphone, { allowedTags: [], allowedAttributes: {} }) || '',
+                    //companyemail: sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }),
+                    companyaddress: sanitizeHtml(req.body.companyaddress, { allowedTags: [], allowedAttributes: {} }) || '',
+                    userid: userResult.userid,
+                    rootfoldername: foldername
+                }).then(custResult => {
+                    //var isSendMail = parseInt(req.body.sendmail) || 0;
+                    //if (isSendMail === 1) {
+                    //    var regmessage = "<p>";
+                    //    regmessage += "Hi ";
+                    //    regmessage += sanitizeHtml(req.body.companyname, { allowedTags: [], allowedAttributes: {} });
+                    //    regmessage += ",";
+                    //    regmessage += "</p>";
+                    //    regmessage += "<p>A new customer account with Indo Aerospace Solution Pvt. Ltd. has been created for you.</p>";
+                    //    regmessage += "<p>Email: " + sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} }) + "</p>";
+                    //    regmessage += "<p>Password: " + password;
+                    //    regmessage += "</p>";
+                    //    regmessage += "<p>We recommend you to change your account password by using Change Password option in your profile section.</p>";
+                    //    regmessage += "<p></p>";
+                    //    regmessage += "Thank You, <br/>";
+                    //    regmessage += "Team Indo Aerospace Solutions";
+                    //    send_email_message.send_email_message(sanitizeHtml(req.body.companyemail, { allowedTags: [], allowedAttributes: {} })
+                    //        , "Welcome to Indo Aerospace Solutions", regmessage);
+                    //}
 
-                var custFolderPath = path.join(uploadFilesFolder, foldername);
-                fs.access(custFolderPath, (error) => {
-                    if (error) {
-                        fs.mkdir(custFolderPath, { recursive: false }, (error) => {
-                            if (error) {
-                                console.log(error);
-                            } else {
-                                console.log("New Directory created successfully !!");
-                            }
-                        });
-                    } else {
-                        console.log("Given Directory already exists !!");
-                    }
+                    var custFolderPath = path.join(uploadFilesFolder, foldername);
+                    fs.access(custFolderPath, (error) => {
+                        if (error) {
+                            fs.mkdir(custFolderPath, { recursive: false }, (error) => {
+                                if (error) {
+                                    console.log(error);
+                                } else {
+                                    console.log("New Directory created successfully !!");
+                                }
+                            });
+                        } else {
+                            console.log("Given Directory already exists !!");
+                        }
+                    });
+                    res.status(200).send({ data: custResult.customerid, message: "Success" });
                 });
-                res.status(200).send({ data: custResult.customerid, message: "Success" });
             });
         });
     }).catch(err => {
         res.status(500).send({ data: null, message: err.message });
     });
 };
-
-
 
 exports.createsubcustomer = (req, res) => {
     Customer.findOne({
@@ -583,7 +523,6 @@ exports.getcustomerprofile = (req, res) => {
             }
         }).then(subc => {
             subc.forEach(elem => {
-                console.log(elem);
                 t_subcustomers.push({
                     "FirstName": elem.firstname,
                     "LastName": elem.lastname,
@@ -628,7 +567,7 @@ exports.getcustomersubcustomers = (req, res) => {
         if (!user) {
             return res.status(404).send({ data: null, message: "Customer not found" });
         }
-        
+
         SubCustomer.findAll({
             attributes: ['subcustomerid', 'firstname', 'lastname', 'email', 'phone', 'designation', 'isactive'],
             raw: true,
@@ -638,7 +577,6 @@ exports.getcustomersubcustomers = (req, res) => {
             }
         }).then(subc => {
             subc.forEach(elem => {
-                console.log(elem);
                 t_subcustomers.push({
                     "FirstName": elem.firstname,
                     "LastName": elem.lastname,

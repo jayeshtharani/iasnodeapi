@@ -4,8 +4,8 @@ exports.createCustomerValidator = [
     body("companyname").exists({ checkFalsy: true }).withMessage("Company Name is required")
         .isLength({ min: 5 }).withMessage("Company Name should be at least 5 characters"),
 
-    body("username").exists({ checkFalsy: true }).withMessage("UserName is required")
-        .isLength({ min: 6 }).withMessage("UserName should be at least 5 characters"),
+    //body("username").exists({ checkFalsy: true }).withMessage("UserName is required")
+    //    .isLength({ min: 6 }).withMessage("UserName should be at least 5 characters"),
 
     body("companyphone").optional({ nullable: true, checkFalsy: true })
         .isLength({ min: 10 }).withMessage("Company Phone should be at least 10 characters"),

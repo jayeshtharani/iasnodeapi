@@ -9,7 +9,9 @@ const { getFolderFilesValidator } = require('../validators/getfolderfiles.valida
 
 module.exports = function (app) {
 
-    app.post("/api/customer/create", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkUserDuplicateEmail, verifySignUp.checkCustomerDuplicateCompanyName], createCustomerValidator, controller.create);
+    app.post("/api/customer/create", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkCustomerDuplicateCompanyName], createCustomerValidator, controller.create);
+
+    //app.post("/api/customer/create", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkUserDuplicateEmail, verifySignUp.checkCustomerDuplicateCompanyName], createCustomerValidator, controller.create);
 
     app.post("/api/customer/createsubcustomer", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkSubCustomerDuplicateEmail], createSubCustomerValidator, controller.createsubcustomer);
 

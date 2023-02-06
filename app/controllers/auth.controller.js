@@ -66,7 +66,7 @@ exports.appsignupbyadminhidethisapi = (req, res) => {
         password += charset.charAt(Math.floor(Math.random() * n));
     }
     User.create({
-        username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
+        username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }).toLowerCase(),
         plaintextpassword: password,
         password: bcrypt.hashSync(password, 8)
     }).then(userResult => {
