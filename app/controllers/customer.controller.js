@@ -86,6 +86,60 @@ const getFileNameMatching = function (dirpath, withfilename) {
 };
 
 
+exports.search = (req, res) => {
+    var pjoiner;
+    if (process.platform === "win32") {
+        pjoiner = "\\";
+    }
+    else {
+        pjoiner = "/";
+    }
+    Customer.findOne({
+        where: {
+            customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer Not found." });
+        }
+        var custFolderPath = path.join(uploadFilesFolder, user.rootfoldername);
+        var alldirs_r = getAllDir(custFolderPath);
+        var allfiles_r = getAllDirFiles(custFolderPath);
+        var alldirs = [];
+        var allfiles = [];
+        alldirs_r.forEach(function(element, index, array) {
+            var allfolderdata = fs.readdirSync(element + pjoiner);
+            for (var i in allfolderdata) {
+                var name = element + pjoiner + allfolderdata[i];
+                if (fs.statSync(name).isDirectory()) {
+                    if (path.basename(name).includes(req.body.search)) {
+                        alldirs.push({ name: path.basename(name), path: path.join(user.rootfoldername, name.replace(custFolderPath,"")) });
+                    }
+                } else {
+                    if (path.basename(name).includes(req.body.search)) {
+                        allfiles.push({ name: path.basename(name), path: path.join(user.rootfoldername, name.replace(custFolderPath, "")) });
+                    }
+                }
+            };
+        });
+        var data = [];
+        data.push({
+            "RootFolder": user.rootfoldername,
+            "CompanyName": user.companyname,
+            "CompanyPhone": user.companyphone,
+            "CompanyAddress": user.companyaddress,
+            "CustomerId": user.customerid,
+            "TotalDocuments": allfiles_r.length,
+            "TotalFolders": alldirs_r.length,
+            "Folders": alldirs,
+            "Files": allfiles,
+        });
+        return res.status(200).send({ data: data, message: "Success" });
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+};
 
 exports.createfile = (req, res) => {
     try {
@@ -361,7 +415,6 @@ exports.edit = (req, res) => {
     });
 };
 
-
 //DONE
 exports.getfolders = (req, res) => {
     const { customerid } = req.params;
@@ -606,12 +659,6 @@ exports.getcustomersubcustomers = (req, res) => {
         res.status(500).send({ data: null, message: err.message });
     });
 };
-
-
-
-
-
-
 
 //done
 exports.dashboard = (req, res) => {

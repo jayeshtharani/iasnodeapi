@@ -6,7 +6,7 @@ const { createSubCustomerValidator } = require('../validators/createsubcustomer.
 const { editCustomerValidator } = require('../validators/editcustomer.validator');
 const { createFolderValidator } = require('../validators/createfolder.validator');
 const { getFolderFilesValidator } = require('../validators/getfolderfiles.validator');
-
+const { searchCustomerValidator } = require('../validators/searchcustomer.validator');
 module.exports = function (app) {
 
     app.post("/api/customer/create", [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkCustomerDuplicateCompanyName], createCustomerValidator, controller.create);
@@ -39,4 +39,6 @@ module.exports = function (app) {
 
     //Folder logic needs to be commented 8 Jan 2023
     app.post("/api/customer/getfolderfiles", [authJwt.verifyToken], getFolderFilesValidator, controller.getfolderfiles);
+
+    app.post("/api/customer/search", [authJwt.verifyToken], searchCustomerValidator, controller.search);
 };
