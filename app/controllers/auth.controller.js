@@ -6,6 +6,27 @@ var bcrypt = require("bcryptjs");
 const sanitizeHtml = require('sanitize-html');
 const send_email_message = require('../middleware/emailer');
 
+
+//exports.test = (req, res) => {
+
+//    let replaceAllSWH = sanitizeHtml('abcde', { allowedTags: [], allowedAttributes: {} }).replace(/\.+/g, "").replace(/\,+/g, "").replace(/'+/g, "").replace(/"+/g, "").replace(/&+/g, "")
+//        .replace(/pvt/ig, "")
+//        .replace(/ltd/ig, "")
+//        .replace(/llc/ig, "")
+//        .replace(/llp/ig, "")
+//        .replace(/inc/ig, "")
+//        .replace(/private/ig, "")
+//        .replace(/limited/ig, "")
+//        .replace(/corporation/ig, "")
+//        .replace(/corp/ig, "").trim()
+//        .replace(/\s+/g, "_").toLowerCase();
+
+
+//    return res.status(200).send({ data: replaceAllSWH, message: "User Not found." });
+//};
+
+
+
 //DONE
 exports.signin = (req, res) => {
     User.findOne({

@@ -8,6 +8,7 @@ const { forgotPasswordValidator } = require('../validators/forgotpassword.valida
 
 
 module.exports = function (app) {
+    //app.post("/api/test", controller.test);
     app.post("/api/auth/signin", loginValidator, controller.signin);
     app.post("/api/auth/appsignupbyadminhidethisapi", [verifySignUp.checkUserDuplicateEmail], createAdminValidator, controller.appsignupbyadminhidethisapi);
     app.post("/api/auth/changepassword", [authJwt.verifyToken], changePasswordValidator, controller.changepassword);

@@ -3,7 +3,7 @@ exports.editCustomerValidator = [
 
     body("companyname").exists({ checkFalsy: true }).withMessage("Company Name is required")
         .isString().withMessage("Company Name should be string")
-        .isLength({ min: 5 }).withMessage("Company Name should be at least 5 characters"),
+        .isLength({ min: 6 }).withMessage("Company Name should be at least 6 characters"),
 
     //body("companyemail").exists({ checkFalsy: true }).withMessage("Company Email is required")
     //    .isEmail().withMessage("Provide Valid Company Email"),

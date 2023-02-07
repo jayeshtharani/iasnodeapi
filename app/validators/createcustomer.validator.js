@@ -2,7 +2,7 @@ const { body, validationResult } = require("express-validator");
 exports.createCustomerValidator = [
 
     body("companyname").exists({ checkFalsy: true }).withMessage("Company Name is required")
-        .isLength({ min: 5 }).withMessage("Company Name should be at least 5 characters"),
+        .isLength({ min: 6 }).withMessage("Company Name should be at least 6 characters"),
 
     //body("username").exists({ checkFalsy: true }).withMessage("UserName is required")
     //    .isLength({ min: 6 }).withMessage("UserName should be at least 5 characters"),
