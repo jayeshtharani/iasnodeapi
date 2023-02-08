@@ -47,6 +47,7 @@
     <Content Include="app\routes\auth.routes.js" />
     <Content Include="app\routes\admin.routes.js" />
     <Content Include="app\routes\customer.routes.js" />
+    <Content Include="app\validators\removesubcustomer.validator.js" />
     <Content Include="app\validators\searchcustomer.validator.js" />
     <Content Include="app\validators\createsubcustomer.validator.js" />
     <Content Include="app\validators\editcustomer.validator.js" />

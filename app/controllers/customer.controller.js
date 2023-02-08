@@ -359,7 +359,92 @@ exports.create = (req, res) => {
     });
 };
 
-exports.createsubcustomer = (req, res) => {
+
+exports.removecustomercontact = (req, res) => {
+    Customer.findOne({
+        where: {
+            customerid: req.body.customerid,
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer not found" });
+        }
+        SubCustomer.update(
+            {
+                isdeleted: true
+            },
+            {
+                where: { customerid: req.body.customerid, subcustomerid: req.body.subcustomerid },
+            }
+        ).then(cr => {
+            res.status(200).send({ data: "Customer Contact Removed", message: "Success" });
+
+        }).catch(err => {
+            res.status(500).send({ data: null, message: err.message });
+        });
+
+    }).catch(err => {
+        res.status(500).send({ data: null, message: err.message });
+    });
+};
+
+
+exports.editcustomercontact = (req, res) => {
+    const { subcustomerid } = req.params;
+    Customer.findOne({
+        where: {
+            customerid: req.body.customerid,
+            isdeleted: false
+        }
+    }).then(user => {
+        if (!user) {
+            return res.status(404).send({ data: null, message: "Customer not found" });
+        }
+        db.sequelize.query('SELECT subcustomers.subcustomerid FROM subcustomers where subcustomers.isdeleted=false and subcustomers.customerid= :customerid and subcustomers.email= :email and subcustomers.subcustomerid<> :subcustomerid',
+            {
+                raw: true,
+                type: db.sequelize.QueryTypes.SELECT,
+                replacements: {
+                    customerid: req.body.customerid,
+                    email: sanitizeHtml(req.body.email, { allowedTags: [], allowedAttributes: {} }),
+                    subcustomerid: subcustomerid
+                }
+            }
+        ).then(function (response) {
+            console.log(response);
+            if (!response) {
+                return res.status(404).send({ data: null, message: "Email already exists for the customer" });
+            }
+            if (response.length != 0) {
+                return res.status(404).send({ data: null, message: "Email already exists for the customer" });
+            }
+
+            SubCustomer.update(
+                {
+                    firstname: sanitizeHtml(req.body.firstname, { allowedTags: [], allowedAttributes: {} }),
+                    lastname: sanitizeHtml(req.body.lastname, { allowedTags: [], allowedAttributes: {} }) || '',
+                    email: sanitizeHtml(req.body.email, { allowedTags: [], allowedAttributes: {} }),
+                    phone: sanitizeHtml(req.body.phone, { allowedTags: [], allowedAttributes: {} }) || '',
+                    designation: sanitizeHtml(req.body.designation, { allowedTags: [], allowedAttributes: {} }),
+                },
+                {
+                    where: { customerid: req.body.customerid, subcustomerid: subcustomerid },
+                }
+            ).then(cr => {
+                res.status(200).send({ data: "Customer Contact Updated", message: "Success" });
+
+            }).catch(err => {
+                res.status(500).send({ data: null, message: err.message });
+            });
+
+        }).catch(err => {
+            res.status(500).send({ data: null, message: err.message });
+        });
+    });
+};
+
+exports.createcustomercontact = (req, res) => {
     Customer.findOne({
         where: {
             customerid: sanitizeHtml(req.body.customerid, { allowedTags: [], allowedAttributes: {} }),
@@ -608,7 +693,7 @@ exports.getcustomerprofile = (req, res) => {
 };
 
 
-exports.getcustomersubcustomers = (req, res) => {
+exports.getcustomercontacts = (req, res) => {
     const { customerid } = req.params;
     var t_subcustomers = [];
     Customer.findOne({
