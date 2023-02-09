@@ -662,6 +662,7 @@ exports.getcustomerprofile = (req, res) => {
         }).then(subc => {
             subc.forEach(elem => {
                 t_subcustomers.push({
+                    "SubCustomerId":elem.subcustomerid,
                     "FirstName": elem.firstname,
                     "LastName": elem.lastname,
                     "Email": elem.email,
@@ -716,6 +717,7 @@ exports.getcustomercontacts = (req, res) => {
         }).then(subc => {
             subc.forEach(elem => {
                 t_subcustomers.push({
+                    "SubCustomerId": elem.subcustomerid,
                     "FirstName": elem.firstname,
                     "LastName": elem.lastname,
                     "Email": elem.email,
