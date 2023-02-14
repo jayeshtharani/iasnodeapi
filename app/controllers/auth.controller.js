@@ -9,6 +9,7 @@ const send_email_message = require('../middleware/emailer');
 //DONE
 exports.signin = (req, res) => {
     User.findOne({
+        attributes: ['userid', 'username', 'password', 'isactive'],
         where: {
             username: sanitizeHtml(req.body.username, { allowedTags: [], allowedAttributes: {} }),
             isdeleted: false
@@ -32,8 +33,14 @@ exports.signin = (req, res) => {
             });
         }
 
-        var token = jwt.sign({ id: user }, config.secret, {
-            expiresIn: '30m', algorithm: 'HS512'
+        var data_user = [];
+        data_user.push({
+            id: user.userid,
+            username: user.username
+        });
+
+        var token = jwt.sign({ data: data_user }, config.secret, {
+            expiresIn: '30m', algorithm: 'HS512', audience: 'http://customerportal-ias.com/', keyid: user.userid
         });
 
         var authorities = [];
