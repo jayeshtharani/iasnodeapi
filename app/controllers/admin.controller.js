@@ -96,16 +96,6 @@ exports.dashboard = (req, res) => {
     //var t_cust = [];
     var t_users = [];
 
-    //db.sequelize.query('SELECT customers.customerid FROM customers where customers.isdeleted=false',
-    //    {
-    //        raw: false,
-    //        type: db.sequelize.QueryTypes.SELECT,
-    //    }
-    //).then(function (response) {
-    //    t_cust = response;
-
-    //});
-
     db.sequelize.query('SELECT users.userid,users.username,users.plaintextpassword FROM users where users.isdeleted=false',
         {
             raw: false,
@@ -143,20 +133,7 @@ exports.dashboard = (req, res) => {
             user.rows.forEach(element => {
                 var custFolderPath = path.join(uploadFilesFolder, element.rootfoldername);
                 var allfiles_r = getAllDirFiles(custFolderPath);
-                //var profilepic = "";
-                //if (element.profilepic) {
-                //    if (fs.existsSync(uploadProfilePicFolder + pjoiner + element.profilepic)) {
-
-                //        const ext = (uploadProfilePicFolder + pjoiner + element.profilepic).split('.').filter(Boolean).slice(1).join('.');
-                //        var bitmap = "data:image/" + ext;
-                //        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + element.profilepic, 'base64', 'utf-8');
-                //        profilepic = bitmap;
-                //    }
-                //    else {
-                //        profilepic = "";
-                //    }
-                //}
-
+                
                 var cid_uid = t_users.find(c => c.userid === element.userid);
                 data2.push({
                     "CompanyName": element.companyname,
@@ -210,19 +187,7 @@ exports.dashboard = (req, res) => {
                 var custFolderPath = path.join(uploadFilesFolder, element.rootfoldername);
                 var allfiles_r = getAllDirFiles(custFolderPath);
                 var cid_uid = t_users.find(c => c.userid === element.userid);
-                //var profilepic = "";
-                //if (element.profilepic) {
-                //    if (fs.existsSync(uploadProfilePicFolder + pjoiner + element.profilepic)) {
-
-                //        const ext = (uploadProfilePicFolder + pjoiner + element.profilepic).split('.').filter(Boolean).slice(1).join('.');
-                //        var bitmap = "data:image/" + ext;
-                //        bitmap += ";base64," + fs.readFileSync(uploadProfilePicFolder + pjoiner + element.profilepic, 'base64', 'utf-8');
-                //        profilepic = bitmap;
-                //    }
-                //    else {
-                //        profilepic = "";
-                //    }
-                //}
+                
                 data2.push({
                     "CompanyName": element.companyname,
                     "UserName": cid_uid.username,

@@ -113,11 +113,11 @@ exports.search = (req, res) => {
             for (var i in allfolderdata) {
                 var name = element + pjoiner + allfolderdata[i];
                 if (fs.statSync(name).isDirectory()) {
-                    if (path.basename(name).includes(req.body.search)) {
+                    if (path.basename(name.toLowerCase()).includes(req.body.search.toLowerCase())) {
                         alldirs.push({ name: path.basename(name), path: path.join(user.rootfoldername, name.replace(custFolderPath,"")) });
                     }
                 } else {
-                    if (path.basename(name).includes(req.body.search)) {
+                    if (path.basename(name.toLowerCase()).includes(req.body.search.toLowerCase())) {
                         allfiles.push({ name: path.basename(name), path: path.join(user.rootfoldername, name.replace(custFolderPath, "")) });
                     }
                 }
