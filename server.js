@@ -1,4 +1,5 @@
 //https://codeforgeek.com/a-guide-to-securing-node-js-applications/
+const https = require("https");
 const express = require("express");
 const cors = require("cors");
 const helmet = require('helmet');
@@ -18,7 +19,7 @@ app.use(cors());
 //if (!dev) {
 //    server.set('trust proxy', 1);
 //}
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -59,11 +60,20 @@ require('./app/routes/auth.routes')(app);
 require('./app/routes/customer.routes')(app);
 require('./app/routes/admin.routes')(app);
 require('./app/routes/metal.routes')(app);
-app.listen(PORT, (err) => {
-    if (err) console.log(err);
-    console.log(`Server is running on port ${PORT}.`);
-    console.log(process.env.NODE_ENV);
+
+
+https.createServer({
+    key: fs.readFileSync("/etc/nginx/ssl/indo-aerospace.key"),
+    cert: fs.readFileSync("/etc/nginx/ssl/indo-aerospace.com.crt"),
+},app).listen(443, () => {
+    console.log("server is runing at port 443");
 });
+
+//app.listen(PORT, (err) => {
+//    if (err) console.log(err);
+//    console.log(`Server is running on port ${PORT}.`);
+//    console.log(process.env.NODE_ENV);
+//});
 
 
 function initial() {
