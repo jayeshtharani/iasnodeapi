@@ -66,11 +66,11 @@ require('./app/routes/customer.routes')(app);
 require('./app/routes/admin.routes')(app);
 require('./app/routes/metal.routes')(app);
 
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer(credentials, app);
+
 httpServer.listen(8080);
 httpsServer.listen(8443);
-
-//var httpServer = http.createServer(app);
-//var httpsServer = https.createServer(credentials, app);
 
 //https.createServer({
 //    key: fs.readFileSync("/etc/nginx/ssl/indo-aerospace.key"),
