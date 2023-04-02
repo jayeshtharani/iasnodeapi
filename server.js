@@ -1,6 +1,7 @@
 //https://codeforgeek.com/a-guide-to-securing-node-js-applications/
 const https = require("https");
 const express = require("express");
+const fs = require('fs');
 const cors = require("cors");
 const helmet = require('helmet');
 const compression = require('compression');
