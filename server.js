@@ -2,10 +2,11 @@
 const https = require("https");
 var http = require('http');
 const express = require("express");
+const fs = require('fs');
 var privateKey = fs.readFileSync('/etc/nginx/ssl/indo-aerospace.key', 'utf8');
 var certificate = fs.readFileSync('/etc/nginx/ssl/indo-aerospace.com.crt', 'utf8');
 var credentials = { key: privateKey, cert: certificate };
-const fs = require('fs');
+
 const cors = require("cors");
 const helmet = require('helmet');
 const compression = require('compression');
