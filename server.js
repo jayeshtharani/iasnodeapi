@@ -71,7 +71,7 @@ var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
 
 httpServer.listen(8080);
-httpsServer.listen(443);
+httpsServer.listen(8443);
 
 //https.createServer({
 //    key: fs.readFileSync("/etc/nginx/ssl/indo-aerospace.key"),
