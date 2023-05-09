@@ -3,6 +3,7 @@ const https = require("https");
 var http = require('http');
 const express = require("express");
 const fs = require('fs');
+//prod
 var privateKey = fs.readFileSync('/var/www/html/indo-aerospace.key', 'utf8');
 var certificate = fs.readFileSync('/var/www/html/indo-aerospace.com.crt', 'utf8');
 var credentials = { key: privateKey, cert: certificate };
@@ -55,7 +56,6 @@ const db = require("./app/models");
 const Role = db.role;
 const AppSettings = db.appsettings;
 const MetalTypes = db.metaltypes;
-
 db.sequelize.sync();
 
 //db.sequelize.sync({ force: true }).then(() => {
@@ -66,20 +66,14 @@ require('./app/routes/auth.routes')(app);
 require('./app/routes/customer.routes')(app);
 require('./app/routes/admin.routes')(app);
 require('./app/routes/metal.routes')(app);
-
+require('./app/routes/upload.routes')(app);
+//prod
 var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
-
 httpServer.listen(8080);
 httpsServer.listen(8443);
 
-//https.createServer({
-//    key: fs.readFileSync("/etc/nginx/ssl/indo-aerospace.key"),
-//    cert: fs.readFileSync("/etc/nginx/ssl/indo-aerospace.com.crt"),
-//},app).listen(443, () => {
-//    console.log("server is runing at port 443");
-//});
-
+//development
 //app.listen(PORT, (err) => {
 //    if (err) console.log(err);
 //    console.log(`Server is running on port ${PORT}.`);

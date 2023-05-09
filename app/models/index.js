@@ -26,6 +26,7 @@ db.subcustomers = require("../models/subcustomer.model.js")(sequelize, Sequelize
 db.appsettings = require("../models/app.settings.modal.js")(sequelize, Sequelize);
 db.metaltypes = require("../models/metaltypes.modal.js")(sequelize, Sequelize);
 db.metalinfos = require("../models/metalinfo.modal.js")(sequelize, Sequelize);
+db.clearanceitems = require("../models/clearanceitems.modal.js")(sequelize, Sequelize);
 db.role.belongsToMany(db.user, {
     through: "user_roles",
     foreignKey: "roleid",
