@@ -1,4 +1,3 @@
-
 module.exports = (sequelize, Sequelize) => {
     const ClearanceItems = sequelize.define("clearanceitems", {
         clearanceitemid: {

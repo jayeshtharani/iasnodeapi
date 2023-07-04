@@ -30,6 +30,10 @@ exports.itemssheet = (req, res) => {
                 };
                 tutorials.push(tutorial);
             });
+            Tutorial.destroy({
+                where: {},
+                truncate: true
+            });
             Tutorial.bulkCreate(tutorials, { individualHooks: true })
                 .then(() => {
                     res.status(200).send({
