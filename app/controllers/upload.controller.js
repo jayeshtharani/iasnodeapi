@@ -25,7 +25,7 @@ exports.itemssheet = (req, res) => {
                 let tutorial = {
                     itemname: row[1],
                     itemdescription: row[2],
-                    iemgroup:row[3],
+                    itemgroup:row[3],
                     itembatch: row[4],
                     filename: req.file.filename
                 };
