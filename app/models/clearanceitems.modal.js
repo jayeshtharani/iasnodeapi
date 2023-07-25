@@ -20,6 +20,10 @@ module.exports = (sequelize, Sequelize) => {
         filename: {
             type: Sequelize.TEXT,
             allowNull: false
+        },
+         itemgroup: {
+            type: Sequelize.TEXT,
+            allowNull: true
         }
         
     });
